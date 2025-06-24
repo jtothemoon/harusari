@@ -1,0 +1,158 @@
+import 'package:flutter/material.dart';
+import '../models/todo.dart';
+import '../utils/colors.dart';
+
+class InlineAddTodo extends StatefulWidget {
+  final Function(String title, Priority priority) onAdd;
+  final VoidCallback? onCancel;
+
+  const InlineAddTodo({
+    super.key,
+    required this.onAdd,
+    this.onCancel,
+  });
+
+  @override
+  State<InlineAddTodo> createState() => _InlineAddTodoState();
+}
+
+class _InlineAddTodoState extends State<InlineAddTodo> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  Priority _selectedPriority = Priority.high;
+
+  @override
+  void initState() {
+    super.initState();
+    // 자동으로 포커스
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+    
+    // 텍스트 변경 리스너 추가
+    _controller.addListener(() {
+      setState(() {
+        // 상태 업데이트를 위해 빈 setState 호출
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // 우선순위 색상 동그라미
+            GestureDetector(
+              onTap: _cyclePriority,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: _getPriorityColor(_selectedPriority),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getPriorityColor(_selectedPriority).withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 텍스트 입력 필드
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                decoration: InputDecoration(
+                  hintText: '오늘 하고 싶은 일을 입력하세요',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    color: AppColors.textSecondary.withOpacity(0.7),
+                  ),
+                ),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textPrimary,
+                ),
+                onSubmitted: (_) => _addTodo(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // 취소 버튼
+            IconButton(
+              onPressed: widget.onCancel,
+              icon: const Icon(
+                Icons.close,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            // 추가 버튼
+            IconButton(
+              onPressed: _controller.text.trim().isNotEmpty ? _addTodo : null,
+              icon: Icon(
+                Icons.check_circle,
+                color: _controller.text.trim().isNotEmpty 
+                    ? _getPriorityColor(_selectedPriority)
+                    : AppColors.textSecondary.withOpacity(0.3),
+                size: 28,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _cyclePriority() {
+    setState(() {
+      switch (_selectedPriority) {
+        case Priority.high:
+          _selectedPriority = Priority.medium;
+          break;
+        case Priority.medium:
+          _selectedPriority = Priority.low;
+          break;
+        case Priority.low:
+          _selectedPriority = Priority.high;
+          break;
+      }
+    });
+  }
+
+  Color _getPriorityColor(Priority priority) {
+    switch (priority) {
+      case Priority.high:
+        return AppColors.priorityHigh;
+      case Priority.medium:
+        return AppColors.priorityMedium;
+      case Priority.low:
+        return AppColors.priorityLow;
+    }
+  }
+
+  void _addTodo() {
+    final title = _controller.text.trim();
+    if (title.isNotEmpty) {
+      widget.onAdd(title, _selectedPriority);
+    }
+  }
+} 

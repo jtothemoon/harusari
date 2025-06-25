@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/todo.dart';
 import '../services/database_service.dart';
+import '../utils/constants.dart';
 import 'dart:async';
 
 class TodoProvider with ChangeNotifier {
@@ -18,6 +19,9 @@ class TodoProvider with ChangeNotifier {
   // 하루 전환 타이머
   Timer? _dayTransitionTimer;
   TimeOfDay _dayStartTime = const TimeOfDay(hour: 6, minute: 0);
+  
+  // 캐싱
+  DateTime? _lastLoadedDate;
 
   // Getters
   List<Todo> get todos => _todos;
@@ -33,9 +37,21 @@ class TodoProvider with ChangeNotifier {
 
   // 오늘의 할 일 로드 (완료된 것도 포함)
   Future<void> loadTodosForToday() async {
+    final today = DateTime.now();
+    
+    // 같은 날이면 캐시에서 가져오기 (단, 강제 새로고침이 아닌 경우)
+    if (_lastLoadedDate != null && 
+        _lastLoadedDate!.year == today.year &&
+        _lastLoadedDate!.month == today.month &&
+        _lastLoadedDate!.day == today.day &&
+        _todos.isNotEmpty) {
+      return;
+    }
+    
     _setLoading(true);
     try {
       _todos = await _databaseService.getTodosForToday();
+      _lastLoadedDate = today;
       _error = null;
     } catch (e) {
       _error = '할 일을 불러오는데 실패했습니다: $e';
@@ -143,11 +159,11 @@ class TodoProvider with ChangeNotifier {
   String _getPriorityLimitMessage(Priority priority) {
     switch (priority) {
       case Priority.high:
-        return '가장 중요한 일은 1개만 추가할 수 있습니다';
+        return AppConstants.priorityHighLimitMessage;
       case Priority.medium:
-        return '중간 사이즈의 일은 3개까지 추가할 수 있습니다';
+        return AppConstants.priorityMediumLimitMessage;
       case Priority.low:
-        return '작은 일은 5개까지 추가할 수 있습니다';
+        return AppConstants.priorityLowLimitMessage;
     }
   }
 
@@ -198,8 +214,10 @@ class TodoProvider with ChangeNotifier {
 
   // 에러 초기화
   void clearError() {
-    _error = null;
-    notifyListeners();
+    if (_error != null) {
+      _error = null;
+      notifyListeners();
+    }
   }
 
   // 로딩 상태 설정
@@ -224,11 +242,11 @@ class TodoProvider with ChangeNotifier {
   bool canAddTodo(Priority priority) {
     switch (priority) {
       case Priority.high:
-        return highPriorityCount < 1;
+        return highPriorityCount < AppConstants.maxHighPriorityTodos;
       case Priority.medium:
-        return mediumPriorityCount < 3;
+        return mediumPriorityCount < AppConstants.maxMediumPriorityTodos;
       case Priority.low:
-        return lowPriorityCount < 5;
+        return lowPriorityCount < AppConstants.maxLowPriorityTodos;
     }
   }
 

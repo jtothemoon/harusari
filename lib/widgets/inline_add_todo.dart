@@ -61,21 +61,24 @@ class _InlineAddTodoState extends State<InlineAddTodo> with TickerProviderStateM
       _slideController.forward();
     });
     
-    // 텍스트 변경 리스너 추가
-    _controller.addListener(() {
-      setState(() {
-        // 상태 업데이트를 위해 빈 setState 호출
-      });
-    });
+    // 텍스트 변경 리스너 추가 (버튼 상태 업데이트용)
+    _controller.addListener(_updateButtonState);
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_updateButtonState);
     _controller.dispose();
     _focusNode.dispose();
     _slideController.dispose();
     _priorityController.dispose();
     super.dispose();
+  }
+
+  void _updateButtonState() {
+    setState(() {
+      // 버튼 활성화 상태만 업데이트
+    });
   }
 
   @override
@@ -110,7 +113,7 @@ class _InlineAddTodoState extends State<InlineAddTodo> with TickerProviderStateM
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: _getPriorityColor(_selectedPriority).withOpacity(0.3),
+                            color: _getPriorityColor(_selectedPriority).withValues(alpha: 0.3),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -136,7 +139,7 @@ class _InlineAddTodoState extends State<InlineAddTodo> with TickerProviderStateM
                   hintText: '오늘 하고 싶은 일을 입력하세요',
                   border: InputBorder.none,
                   hintStyle: TextStyle(
-                    color: AppColors.textSecondary.withOpacity(0.7),
+                    color: AppColors.textSecondary.withValues(alpha: 0.7),
                   ),
                 ),
                 style: const TextStyle(
@@ -162,7 +165,7 @@ class _InlineAddTodoState extends State<InlineAddTodo> with TickerProviderStateM
                 Icons.check_circle,
                 color: _controller.text.trim().isNotEmpty 
                     ? _getPriorityColor(_selectedPriority)
-                    : AppColors.textSecondary.withOpacity(0.3),
+                    : AppColors.textSecondary.withValues(alpha: 0.3),
                 size: 28,
               ),
             ),

@@ -1,7 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:flutter/material.dart' show TimeOfDay;
 import '../models/todo.dart';
-import 'package:flutter/material.dart';
+import '../utils/date_utils.dart' as date_utils;
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -40,6 +41,12 @@ class DatabaseService {
       )
     ''');
     
+    // 성능 향상을 위한 인덱스 추가
+    await db.execute('CREATE INDEX idx_todos_created_at ON todos(createdAt)');
+    await db.execute('CREATE INDEX idx_todos_completed_at ON todos(completedAt)');
+    await db.execute('CREATE INDEX idx_todos_priority ON todos(priority)');
+    await db.execute('CREATE INDEX idx_todos_is_completed ON todos(isCompleted)');
+    
     // 설정 테이블 추가
     await db.execute('''
       CREATE TABLE settings(
@@ -58,6 +65,12 @@ class DatabaseService {
           value TEXT NOT NULL
         )
       ''');
+      
+      // 인덱스 추가 (기존 테이블에)
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_created_at ON todos(createdAt)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_completed_at ON todos(completedAt)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_priority ON todos(priority)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_is_completed ON todos(isCompleted)');
     }
   }
 
@@ -70,9 +83,7 @@ class DatabaseService {
   // 모든 할 일 조회 (오늘 날짜 기준)
   Future<List<Todo>> getTodosForToday() async {
     final db = await database;
-    final today = DateTime.now();
-    final startOfDay = DateTime(today.year, today.month, today.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
+    final (startOfDay, endOfDay) = date_utils.DateUtils.getTodayRange();
 
     final List<Map<String, dynamic>> maps = await db.query(
       'todos',
@@ -87,9 +98,7 @@ class DatabaseService {
   // 완료되지 않은 할 일만 조회
   Future<List<Todo>> getIncompleteTodosForToday() async {
     final db = await database;
-    final today = DateTime.now();
-    final startOfDay = DateTime(today.year, today.month, today.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
+    final (startOfDay, endOfDay) = date_utils.DateUtils.getTodayRange();
 
     final List<Map<String, dynamic>> maps = await db.query(
       'todos',
@@ -104,8 +113,7 @@ class DatabaseService {
   // 완료된 할 일 조회 (특정 날짜)
   Future<List<Todo>> getCompletedTodosForDate(DateTime date) async {
     final db = await database;
-    final startOfDay = DateTime(date.year, date.month, date.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
+    final (startOfDay, endOfDay) = date_utils.DateUtils.getDayRange(date);
 
     final List<Map<String, dynamic>> maps = await db.query(
       'todos',

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../utils/colors.dart';
 import '../providers/todo_provider.dart';
 import '../models/todo.dart';
-import '../widgets/todo_card.dart';
 import '../widgets/empty_state.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -74,7 +73,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadow.withOpacity(0.1),
+                      color: AppColors.shadow.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -173,7 +172,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       shape: BoxShape.circle,
                     ),
                     todayDecoration: BoxDecoration(
-                      color: AppColors.priorityHigh.withOpacity(0.3),
+                      color: AppColors.priorityHigh.withValues(alpha: 0.3),
                       border: Border.all(color: AppColors.priorityHigh, width: 2),
                       shape: BoxShape.circle,
                     ),
@@ -221,7 +220,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.shadow.withOpacity(0.1),
+                          color: AppColors.shadow.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -256,7 +255,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     color: AppColors.background,
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: _getPriorityColor(todo.priority).withOpacity(0.3),
+                                      color: _getPriorityColor(todo.priority).withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Row(

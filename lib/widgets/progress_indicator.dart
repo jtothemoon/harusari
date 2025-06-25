@@ -79,11 +79,7 @@ class _TodoProgressIndicatorState extends State<TodoProgressIndicator>
     return completedCount / widget.todos.length;
   }
 
-  String get _progressText {
-    final completedCount = widget.todos.where((todo) => todo.isCompleted).length;
-    final totalCount = widget.todos.length;
-    return '$completedCount/$totalCount';
-  }
+
 
   Color get _progressColor {
     if (_completionRate >= 1.0) return Colors.green;
@@ -102,7 +98,7 @@ class _TodoProgressIndicatorState extends State<TodoProgressIndicator>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withOpacity(0.1),
+            color: AppColors.shadow.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -141,7 +137,7 @@ class _TodoProgressIndicatorState extends State<TodoProgressIndicator>
             builder: (context, child) {
               return LinearProgressIndicator(
                 value: _completionRate * _progressAnimation.value,
-                backgroundColor: AppColors.textSecondary.withOpacity(0.2),
+                backgroundColor: AppColors.textSecondary.withValues(alpha: 0.2),
                 valueColor: AlwaysStoppedAnimation<Color>(_progressColor),
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),

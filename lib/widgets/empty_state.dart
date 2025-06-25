@@ -80,13 +80,13 @@ class _EmptyStateState extends State<EmptyState>
                     width: widget.isCompact ? 80 : 120,
                     height: widget.isCompact ? 80 : 120,
                     decoration: BoxDecoration(
-                      color: AppColors.priorityHigh.withOpacity(0.1),
+                      color: AppColors.priorityHigh.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       widget.icon,
                       size: widget.isCompact ? 40 : 60,
-                      color: AppColors.priorityHigh.withOpacity(0.6),
+                      color: AppColors.priorityHigh.withValues(alpha: 0.6),
                     ),
                   ),
                 ),

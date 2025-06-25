@@ -54,6 +54,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _dayStartTime = picked;
       });
       
+      if (!mounted) return;
+      
       final todoProvider = context.read<TodoProvider>();
       await todoProvider.setDayStartTime(picked);
       
@@ -122,7 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: AppColors.priorityHigh.withOpacity(0.3),
+                          color: AppColors.priorityHigh.withValues(alpha: 0.3),
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),

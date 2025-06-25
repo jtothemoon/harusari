@@ -17,10 +17,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # 상태 관리
-  provider: ^6.1.1
+  provider: ^6.1.2
   
   # 로컬 데이터베이스
-  sqflite: ^2.3.0
+  sqflite: ^2.4.1
   path: ^1.8.3
   
   # 날짜/시간 처리
@@ -28,6 +28,13 @@ dependencies:
   
   # 파일 경로
   path_provider: ^2.1.1
+
+  # 캘린더 위젯
+  table_calendar: ^3.1.2
+
+  # 애니메이션
+  flutter_staggered_animations: ^1.1.1
+  lottie: ^3.1.2
 
 dev_dependencies:
   flutter_test:

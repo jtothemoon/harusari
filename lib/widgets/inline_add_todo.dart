@@ -16,17 +16,49 @@ class InlineAddTodo extends StatefulWidget {
   State<InlineAddTodo> createState() => _InlineAddTodoState();
 }
 
-class _InlineAddTodoState extends State<InlineAddTodo> {
+class _InlineAddTodoState extends State<InlineAddTodo> with TickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   Priority _selectedPriority = Priority.high;
+  late AnimationController _slideController;
+  late AnimationController _priorityController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _priorityAnimation;
 
   @override
   void initState() {
     super.initState();
-    // 자동으로 포커스
+    
+    // 애니메이션 컨트롤러 초기화
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _priorityController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutBack,
+    ));
+    
+    _priorityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _priorityController,
+      curve: Curves.elasticOut,
+    ));
+    
+    // 자동으로 포커스 및 애니메이션 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
+      _slideController.forward();
     });
     
     // 텍스트 변경 리스너 추가
@@ -41,40 +73,58 @@ class _InlineAddTodoState extends State<InlineAddTodo> {
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
+    _slideController.dispose();
+    _priorityController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
+    return SlideTransition(
+      position: _slideAnimation,
+      child: Card(
+        margin: const EdgeInsets.all(16),
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
           children: [
             // 우선순위 색상 동그라미
-            GestureDetector(
-              onTap: _cyclePriority,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: _getPriorityColor(_selectedPriority),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: _getPriorityColor(_selectedPriority).withOpacity(0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+            AnimatedBuilder(
+              animation: _priorityAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _priorityAnimation.value,
+                  child: GestureDetector(
+                    onTap: () {
+                      _cyclePriority();
+                      _priorityController.forward().then((_) {
+                        _priorityController.reverse();
+                      });
+                    },
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: _getPriorityColor(_selectedPriority),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: _getPriorityColor(_selectedPriority).withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
+                  ),
+                );
+              },
             ),
             const SizedBox(width: 12),
             // 텍스트 입력 필드
@@ -118,6 +168,7 @@ class _InlineAddTodoState extends State<InlineAddTodo> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

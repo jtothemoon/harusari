@@ -1,4 +1,30 @@
+import 'package:flutter/material.dart';
+
 enum Priority { high, medium, low }
+
+extension PriorityExtension on Priority {
+  Color get color {
+    switch (this) {
+      case Priority.high:
+        return const Color(0xFFE53E3E); // 빨강
+      case Priority.medium:
+        return const Color(0xFFDD6B20); // 주황
+      case Priority.low:
+        return const Color(0xFF38A169); // 초록
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case Priority.high:
+        return '중요';
+      case Priority.medium:
+        return '보통';
+      case Priority.low:
+        return '낮음';
+    }
+  }
+}
 
 class Todo {
   final int? id;
@@ -32,15 +58,31 @@ class Todo {
   // JSON 역직렬화
   factory Todo.fromMap(Map<String, dynamic> map) {
     return Todo(
-      id: map['id'],
+      id: map['id'] is String ? int.parse(map['id']) : map['id'],
       title: map['title'],
       priority: Priority.values[map['priority']],
       isCompleted: map['isCompleted'] == 1,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
+      createdAt: _parseDateTime(map['createdAt']),
       completedAt: map['completedAt'] != null 
-          ? DateTime.fromMillisecondsSinceEpoch(map['completedAt'])
+          ? _parseDateTime(map['completedAt'])
           : null,
     );
+  }
+
+  // DateTime 파싱 헬퍼 메서드
+  static DateTime _parseDateTime(dynamic value) {
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    } else if (value is String) {
+      // String인 경우 int로 파싱 시도
+      final intValue = int.tryParse(value);
+      if (intValue != null) {
+        return DateTime.fromMillisecondsSinceEpoch(intValue);
+      }
+      // ISO 형식인 경우
+      return DateTime.parse(value);
+    }
+    throw ArgumentError('Invalid DateTime value: $value');
   }
 
   // 복사본 생성 (수정용)

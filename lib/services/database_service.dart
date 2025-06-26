@@ -23,9 +23,8 @@ class DatabaseService {
     
     return await openDatabase(
       path,
-      version: 2, // 버전 업데이트
+      version: 1, // 버전 1로 되돌림 (깔끔하게 시작)
       onCreate: _createDatabase,
-      onUpgrade: _upgradeDatabase,
     );
   }
 
@@ -56,24 +55,6 @@ class DatabaseService {
     ''');
   }
 
-  Future<void> _upgradeDatabase(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // 설정 테이블 추가
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS settings(
-          key TEXT PRIMARY KEY,
-          value TEXT NOT NULL
-        )
-      ''');
-      
-      // 인덱스 추가 (기존 테이블에)
-      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_created_at ON todos(createdAt)');
-      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_completed_at ON todos(completedAt)');
-      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_priority ON todos(priority)');
-      await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_is_completed ON todos(isCompleted)');
-    }
-  }
-
   // 할 일 추가
   Future<int> insertTodo(Todo todo) async {
     final db = await database;
@@ -87,9 +68,9 @@ class DatabaseService {
 
     final List<Map<String, dynamic>> maps = await db.query(
       'todos',
-      where: 'CAST(createdAt AS INTEGER) >= ? AND CAST(createdAt AS INTEGER) < ?',
-      whereArgs: [startOfDay.millisecondsSinceEpoch, endOfDay.millisecondsSinceEpoch],
-      orderBy: 'priority ASC, CAST(createdAt AS INTEGER) ASC',
+      where: 'createdAt >= ? AND createdAt < ?',
+      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+      orderBy: 'priority ASC, createdAt ASC',
     );
 
     return List.generate(maps.length, (i) => Todo.fromMap(maps[i]));
@@ -102,9 +83,9 @@ class DatabaseService {
 
     final List<Map<String, dynamic>> maps = await db.query(
       'todos',
-      where: 'CAST(createdAt AS INTEGER) >= ? AND CAST(createdAt AS INTEGER) < ? AND isCompleted = 0',
-      whereArgs: [startOfDay.millisecondsSinceEpoch, endOfDay.millisecondsSinceEpoch],
-      orderBy: 'priority ASC, CAST(createdAt AS INTEGER) ASC',
+      where: 'createdAt >= ? AND createdAt < ? AND isCompleted = 0',
+      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+      orderBy: 'priority ASC, createdAt ASC',
     );
 
     return List.generate(maps.length, (i) => Todo.fromMap(maps[i]));
@@ -117,9 +98,9 @@ class DatabaseService {
 
     final List<Map<String, dynamic>> maps = await db.query(
       'todos',
-      where: 'CAST(completedAt AS INTEGER) >= ? AND CAST(completedAt AS INTEGER) < ? AND isCompleted = 1',
-      whereArgs: [startOfDay.millisecondsSinceEpoch, endOfDay.millisecondsSinceEpoch],
-      orderBy: 'CAST(completedAt AS INTEGER) DESC',
+      where: 'completedAt >= ? AND completedAt < ? AND isCompleted = 1',
+      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+      orderBy: 'completedAt DESC',
     );
 
     return List.generate(maps.length, (i) => Todo.fromMap(maps[i]));
@@ -155,8 +136,8 @@ class DatabaseService {
 
     final List<Map<String, dynamic>> maps = await db.query(
       'todos',
-      where: 'CAST(completedAt AS INTEGER) >= ? AND CAST(completedAt AS INTEGER) < ? AND isCompleted = 1',
-      whereArgs: [startOfDay.millisecondsSinceEpoch, endOfDay.millisecondsSinceEpoch],
+      where: 'completedAt >= ? AND completedAt < ? AND isCompleted = 1',
+      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
     );
 
     Map<Priority, int> counts = {
@@ -182,8 +163,8 @@ class DatabaseService {
     
     final result = await db.query(
       'todos',
-      where: 'CAST(createdAt AS INTEGER) >= ? AND CAST(createdAt AS INTEGER) < ?',
-      whereArgs: [startOfDay.millisecondsSinceEpoch, endOfDay.millisecondsSinceEpoch],
+      where: 'createdAt >= ? AND createdAt < ?',
+      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
     );
     
     final counts = {Priority.high: 0, Priority.medium: 0, Priority.low: 0};

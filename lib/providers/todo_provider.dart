@@ -16,7 +16,7 @@ class TodoProvider with ChangeNotifier {
   Todo? _lastCompletedTodo;
   Timer? _undoTimer;
   
-  // 하루 전환 타이머
+  // 하루 전환 기능 관련 (현재 비활성화)
   Timer? _dayTransitionTimer;
   TimeOfDay _dayStartTime = const TimeOfDay(hour: 6, minute: 0);
   
@@ -39,14 +39,30 @@ class TodoProvider with ChangeNotifier {
   Future<void> loadTodosForToday() async {
     final today = DateTime.now();
     
-    // 같은 날이면 캐시에서 가져오기 (단, 강제 새로고침이 아닌 경우)
+    // 같은 날이면 캐시에서 가져오기 (단, 미완료 할일이 있는 경우에만)
     if (_lastLoadedDate != null && 
         _lastLoadedDate!.year == today.year &&
         _lastLoadedDate!.month == today.month &&
         _lastLoadedDate!.day == today.day &&
-        _todos.isNotEmpty) {
+        _todos.any((todo) => !todo.isCompleted)) {
       return;
     }
+    
+    _setLoading(true);
+    try {
+      _todos = await _databaseService.getTodosForToday();
+      _lastLoadedDate = today;
+      _error = null;
+    } catch (e) {
+      _error = '할 일을 불러오는데 실패했습니다: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // 캐시를 무시하고 강제로 오늘의 할 일 로드
+  Future<void> forceLoadTodosForToday() async {
+    final today = DateTime.now();
     
     _setLoading(true);
     try {
@@ -345,35 +361,35 @@ class TodoProvider with ChangeNotifier {
     return _dayStartTime;
   }
 
-  // Provider 초기화 시 하루 시작 시간 로드 및 타이머 설정
+  // Provider 초기화 시 하루 시작 시간 로드
   Future<void> initialize() async {
     await getDayStartTime();
     
-    // 앱 시작 시 하루 전환이 필요한지 체크
-    await _checkAndPerformDayTransition();
-    
-    _scheduleDayTransition();
+    // 하루 전환 기능은 현재 비활성화됨
+    // 필요시 아래 주석을 해제하여 활성화 가능:
+    // await _checkAndPerformDayTransition();
+    // _scheduleDayTransition();
   }
 
   // 앱 시작 시 하루 전환 체크
-  Future<void> _checkAndPerformDayTransition() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final todayTransition = today.add(
-      Duration(
-        hours: _dayStartTime.hour,
-        minutes: _dayStartTime.minute,
-      ),
-    );
+  // Future<void> _checkAndPerformDayTransition() async {
+  //   final now = DateTime.now();
+  //   final today = DateTime(now.year, now.month, now.day);
+  //   final todayTransition = today.add(
+  //     Duration(
+  //       hours: _dayStartTime.hour,
+  //       minutes: _dayStartTime.minute,
+  //     ),
+  //   );
     
-    // 현재 시간이 오늘의 전환 시간을 지났는지 확인
-    if (now.isAfter(todayTransition)) {
-      if (kDebugMode) {
-        print('앱 시작 시 하루 전환 필요: 현재 ${now.hour}:${now.minute}, 전환 시간 ${_dayStartTime.hour}:${_dayStartTime.minute}');
-      }
-      await _performDayTransition();
-    }
-  }
+  //   // 현재 시간이 오늘의 전환 시간을 지났는지 확인
+  //   if (now.isAfter(todayTransition)) {
+  //     if (kDebugMode) {
+  //       print('앱 시작 시 하루 전환 필요: 현재 ${now.hour}:${now.minute}, 전환 시간 ${_dayStartTime.hour}:${_dayStartTime.minute}');
+  //     }
+  //     await _performDayTransition();
+  //   }
+  // }
 
   // 하루 전환 타이머 스케줄링
   void _scheduleDayTransition() {

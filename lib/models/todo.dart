@@ -50,8 +50,8 @@ class Todo {
       'title': title,
       'priority': priority.index,
       'isCompleted': isCompleted ? 1 : 0,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-      'completedAt': completedAt?.millisecondsSinceEpoch,
+      'createdAt': createdAt.toIso8601String(),
+      'completedAt': completedAt?.toIso8601String(),
     };
   }
 
@@ -71,16 +71,21 @@ class Todo {
 
   // DateTime 파싱 헬퍼 메서드
   static DateTime _parseDateTime(dynamic value) {
-    if (value is int) {
-      return DateTime.fromMillisecondsSinceEpoch(value);
-    } else if (value is String) {
-      // String인 경우 int로 파싱 시도
-      final intValue = int.tryParse(value);
-      if (intValue != null) {
-        return DateTime.fromMillisecondsSinceEpoch(intValue);
+    if (value is String) {
+      // ISO 8601 형식 우선 처리
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        // ISO 형식이 아닌 경우 int로 파싱 시도 (기존 데이터 호환성)
+        final intValue = int.tryParse(value);
+        if (intValue != null) {
+          return DateTime.fromMillisecondsSinceEpoch(intValue);
+        }
+        rethrow;
       }
-      // ISO 형식인 경우
-      return DateTime.parse(value);
+    } else if (value is int) {
+      // 기존 millisecondsSinceEpoch 형식 지원 (호환성)
+      return DateTime.fromMillisecondsSinceEpoch(value);
     }
     throw ArgumentError('Invalid DateTime value: $value');
   }

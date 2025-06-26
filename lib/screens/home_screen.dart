@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'HaruTodo',
+          '하루Todo',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,

@@ -169,9 +169,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow('앱 이름', 'HaruTodo'),
+                  _buildInfoRow('앱 이름', '하루Todo'),
                   _buildInfoRow('버전', '1.0.0'),
-                  _buildInfoRow('개발자', 'HaruTodo Team'),
+                  _buildInfoRow('개발자', 'Lim Hyun Jin'),
                   const SizedBox(height: 16),
                   const Text(
                     '1-3-5 법칙으로 하루에 집중하는 할 일 관리 앱',

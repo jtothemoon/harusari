@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
+// import 'package:intl/intl.dart';
 import '../utils/colors.dart';
 import '../providers/todo_provider.dart';
 import '../models/todo.dart';
@@ -80,12 +81,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ],
                 ),
                 child: TableCalendar<Todo>(
+                  locale: 'ko_KR',
                   firstDay: DateTime.utc(2020, 1, 1),
                   lastDay: DateTime.utc(2030, 12, 31),
                   focusedDay: _focusedDay,
                   selectedDayPredicate: (day) {
                     return isSameDay(_selectedDay, day);
                   },
+                  daysOfWeekVisible: true,
                   onDaySelected: (selectedDay, focusedDay) async {
                     setState(() {
                       _selectedDay = selectedDay;
@@ -101,6 +104,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     return [];
                   },
                   calendarBuilders: CalendarBuilders(
+                    dowBuilder: (context, day) {
+                      // 요일을 한 글자로 표시
+                      String dayName;
+                      switch (day.weekday) {
+                        case 1: dayName = '월'; break;
+                        case 2: dayName = '화'; break;
+                        case 3: dayName = '수'; break;
+                        case 4: dayName = '목'; break;
+                        case 5: dayName = '금'; break;
+                        case 6: dayName = '토'; break;
+                        case 7: dayName = '일'; break;
+                        default: dayName = '';
+                      }
+                      return Center(
+                        child: Text(
+                          dayName,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      );
+                    },
                     markerBuilder: (context, day, events) {
                       return FutureBuilder<List<Todo>>(
                         future: todoProvider.getCompletedTodosForDate(day),
@@ -201,10 +228,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     weekdayStyle: TextStyle(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
                     weekendStyle: TextStyle(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
                   ),
                 ),

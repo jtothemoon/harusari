@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          '하루Todo',
+          '오늘의 할 일',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,

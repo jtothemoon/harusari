@@ -1,4 +1,4 @@
-# 🌱 HaruTodo
+# 🌱 하루살이
 
 > **오늘 하루에만 집중하는 할 일 관리 앱**
 
@@ -6,7 +6,7 @@
 ![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=flat&logo=dart&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-HaruTodo는 **1-3-5 법칙**을 기반으로 한 하루 집중형 할 일 관리 앱입니다. 내일이나 모레의 계획으로 인한 부담감을 없애고, 오늘 하루에만 온전히 집중할 수 있도록 도와줍니다.
+하루살이는 **1-3-5 법칙**을 기반으로 한 하루 집중형 할 일 관리 앱입니다. 내일이나 모레의 계획으로 인한 부담감을 없애고, 오늘 하루에만 온전히 집중할 수 있도록 도와줍니다.
 
 ## ✨ 주요 특징
 
@@ -94,7 +94,7 @@ lib/
 
 1. **저장소 클론**
    ```bash
-   git clone https://github.com/your-username/harutodo.git
+   git clone https://github.com/jtothemoon/haru_todo.git
    cd harutodo
    ```
 

@@ -304,8 +304,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           style: const TextStyle(
                                             fontSize: 14,
                                             color: AppColors.textPrimary,
-                                            decoration: TextDecoration.lineThrough,
-                                            decorationColor: AppColors.textSecondary,
                                           ),
                                         ),
                                       ),

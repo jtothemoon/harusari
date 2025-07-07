@@ -1,4 +1,4 @@
-package com.example.harutodo
+package com.haru.harutodo
 
 import io.flutter.embedding.android.FlutterActivity
 

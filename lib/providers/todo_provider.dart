@@ -111,6 +111,8 @@ class TodoProvider with ChangeNotifier {
         // 할 일을 제거하지 않고 상태만 업데이트
         _todos[index] = completedTodo;
         _lastCompletedTodo = completedTodo;
+        
+        // 즉시 UI 업데이트
         notifyListeners();
         
         // 5초 후 Undo 타이머 시작

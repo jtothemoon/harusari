@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 // import 'package:intl/intl.dart';
-import '../utils/colors.dart';
+import '../theme/app_colors.dart';
 import '../providers/todo_provider.dart';
 import '../models/todo.dart';
 import '../widgets/empty_state.dart';
@@ -30,7 +30,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (_selectedDay != null) {
       final todoProvider = context.read<TodoProvider>();
       final todos = await todoProvider.getCompletedTodosForDate(_selectedDay!);
-      
+
       // 우선순위별로 정렬 (빨강 → 주황 → 초록)
       todos.sort((a, b) {
         if (a.priority != b.priority) {
@@ -42,7 +42,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         }
         return 0;
       });
-      
+
       setState(() {
         _selectedDayTodos = todos;
       });
@@ -108,14 +108,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       // 요일을 한 글자로 표시
                       String dayName;
                       switch (day.weekday) {
-                        case 1: dayName = '월'; break;
-                        case 2: dayName = '화'; break;
-                        case 3: dayName = '수'; break;
-                        case 4: dayName = '목'; break;
-                        case 5: dayName = '금'; break;
-                        case 6: dayName = '토'; break;
-                        case 7: dayName = '일'; break;
-                        default: dayName = '';
+                        case 1:
+                          dayName = '월';
+                          break;
+                        case 2:
+                          dayName = '화';
+                          break;
+                        case 3:
+                          dayName = '수';
+                          break;
+                        case 4:
+                          dayName = '목';
+                          break;
+                        case 5:
+                          dayName = '금';
+                          break;
+                        case 6:
+                          dayName = '토';
+                          break;
+                        case 7:
+                          dayName = '일';
+                          break;
+                        default:
+                          dayName = '';
                       }
                       return Center(
                         child: Text(
@@ -137,9 +152,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           }
 
                           final completedTodos = snapshot.data!;
-                          final highCount = completedTodos.where((t) => t.priority == Priority.high).length;
-                          final mediumCount = completedTodos.where((t) => t.priority == Priority.medium).length;
-                          final lowCount = completedTodos.where((t) => t.priority == Priority.low).length;
+                          final highCount = completedTodos
+                              .where((t) => t.priority == Priority.high)
+                              .length;
+                          final mediumCount = completedTodos
+                              .where((t) => t.priority == Priority.medium)
+                              .length;
+                          final lowCount = completedTodos
+                              .where((t) => t.priority == Priority.low)
+                              .length;
 
                           return Positioned(
                             bottom: 2,
@@ -150,33 +171,48 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   Container(
                                     width: 7,
                                     height: 7,
-                                    margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 0.5,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.priorityHigh,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 1),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 1,
+                                      ),
                                     ),
                                   ),
                                 if (mediumCount > 0)
                                   Container(
                                     width: 6,
                                     height: 6,
-                                    margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 0.5,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.priorityMedium,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 1),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 1,
+                                      ),
                                     ),
                                   ),
                                 if (lowCount > 0)
                                   Container(
                                     width: 5,
                                     height: 5,
-                                    margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 0.5,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.priorityLow,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 1),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 1,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -200,7 +236,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                     todayDecoration: BoxDecoration(
                       color: AppColors.priorityHigh.withValues(alpha: 0.3),
-                      border: Border.all(color: AppColors.priorityHigh, width: 2),
+                      border: Border.all(
+                        color: AppColors.priorityHigh,
+                        width: 2,
+                      ),
                       shape: BoxShape.circle,
                     ),
                     defaultTextStyle: const TextStyle(
@@ -267,10 +306,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                                                  if (_selectedDayTodos.isEmpty)
-                           Expanded(
-                             child: EmptyStates.noCompletedTodos(),
-                           )
+                        if (_selectedDayTodos.isEmpty)
+                          Expanded(child: EmptyStates.noCompletedTodos())
                         else
                           Expanded(
                             child: ListView.builder(
@@ -284,7 +321,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     color: AppColors.background,
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: _getPriorityColor(todo.priority).withValues(alpha: 0.3),
+                                      color: _getPriorityColor(
+                                        todo.priority,
+                                      ).withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Row(
@@ -293,8 +332,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         width: 3,
                                         height: 24,
                                         decoration: BoxDecoration(
-                                          color: _getPriorityColor(todo.priority),
-                                          borderRadius: BorderRadius.circular(1.5),
+                                          color: _getPriorityColor(
+                                            todo.priority,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            1.5,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 12),
@@ -339,4 +382,4 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return AppColors.priorityLow;
     }
   }
-} 
+}

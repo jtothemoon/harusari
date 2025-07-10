@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/todo.dart';
-import '../utils/colors.dart';
+import '../theme/app_colors.dart';
 
 class TodoCard extends StatefulWidget {
   final Todo todo;
@@ -36,7 +36,7 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
     super.initState();
     _textController = TextEditingController(text: widget.todo.title);
     _currentPriority = widget.todo.priority;
-    
+
     // 애니메이션 컨트롤러 초기화
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 150),
@@ -46,22 +46,14 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _checkAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _checkController,
-      curve: Curves.elasticOut,
-    ));
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
+
+    _checkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _checkController, curve: Curves.elasticOut),
+    );
   }
 
   @override
@@ -118,11 +110,7 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-          size: 24,
-        ),
+        child: const Icon(Icons.delete, color: Colors.white, size: 24),
       ),
       child: GestureDetector(
         onTap: () {
@@ -182,8 +170,8 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
                               width: 24,
                               height: 24,
                               decoration: BoxDecoration(
-                                color: _checkAnimation.value > 0.5 
-                                    ? AppColors.priorityHigh 
+                                color: _checkAnimation.value > 0.5
+                                    ? AppColors.priorityHigh
                                     : Colors.transparent,
                                 border: Border.all(
                                   color: AppColors.priorityHigh,
@@ -237,7 +225,11 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
           children: [
             _buildPriorityButton(Priority.high, '중요', AppColors.priorityHigh),
             const SizedBox(width: 8),
-            _buildPriorityButton(Priority.medium, '보통', AppColors.priorityMedium),
+            _buildPriorityButton(
+              Priority.medium,
+              '보통',
+              AppColors.priorityMedium,
+            ),
             const SizedBox(width: 8),
             _buildPriorityButton(Priority.low, '낮음', AppColors.priorityLow),
           ],
@@ -258,10 +250,7 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: isSelected ? color : Colors.transparent,
-          border: Border.all(
-            color: color,
-            width: 1,
-          ),
+          border: Border.all(color: color, width: 1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
@@ -283,11 +272,7 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
         // 저장 버튼
         IconButton(
           onPressed: _saveChanges,
-          icon: const Icon(
-            Icons.check,
-            color: AppColors.priorityLow,
-            size: 20,
-          ),
+          icon: const Icon(Icons.check, color: AppColors.priorityLow, size: 20),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
@@ -334,25 +319,26 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
 
   Future<bool> _showDeleteConfirmDialog() async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('할 일 삭제'),
-        content: const Text('이 할 일을 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('할 일 삭제'),
+            content: const Text('이 할 일을 삭제하시겠습니까?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('취소'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.priorityHigh,
+                ),
+                child: const Text('삭제'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.priorityHigh,
-            ),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   Color _getPriorityColor(Priority priority) {
@@ -365,4 +351,4 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
         return AppColors.priorityLow;
     }
   }
-} 
+}

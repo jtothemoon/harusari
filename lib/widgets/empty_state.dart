@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/colors.dart';
+import '../theme/app_colors.dart';
 
 class EmptyState extends StatefulWidget {
   final String title;
@@ -37,21 +37,19 @@ class _EmptyStateState extends State<EmptyState>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+      ),
+    );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
+      ),
+    );
 
     _controller.forward();
   }
@@ -71,8 +69,12 @@ class _EmptyStateState extends State<EmptyState>
           child: Padding(
             padding: EdgeInsets.all(widget.isCompact ? 16.0 : 32.0),
             child: Column(
-              mainAxisAlignment: widget.isCompact ? MainAxisAlignment.start : MainAxisAlignment.center,
-              mainAxisSize: widget.isCompact ? MainAxisSize.min : MainAxisSize.max,
+              mainAxisAlignment: widget.isCompact
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.center,
+              mainAxisSize: widget.isCompact
+                  ? MainAxisSize.min
+                  : MainAxisSize.max,
               children: [
                 Transform.scale(
                   scale: _scaleAnimation.value,
@@ -98,11 +100,12 @@ class _EmptyStateState extends State<EmptyState>
                     children: [
                       Text(
                         widget.title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                          fontSize: widget.isCompact ? 16 : null,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              fontSize: widget.isCompact ? 16 : null,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: widget.isCompact ? 4 : 8),
@@ -115,7 +118,8 @@ class _EmptyStateState extends State<EmptyState>
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      if (widget.onActionPressed != null && widget.actionText != null) ...[
+                      if (widget.onActionPressed != null &&
+                          widget.actionText != null) ...[
                         SizedBox(height: widget.isCompact ? 16 : 24),
                         ElevatedButton.icon(
                           onPressed: widget.onActionPressed,
@@ -174,4 +178,4 @@ class EmptyStates {
       isCompact: true,
     );
   }
-} 
+}

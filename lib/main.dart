@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'providers/todo_provider.dart';
-import 'screens/home_screen.dart';
-import 'screens/calendar_screen.dart';
-import 'screens/settings_screen.dart';
-import 'utils/colors.dart';
+import 'router.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => TodoProvider(),
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: '하루살이',
         debugShowCheckedModeBanner: false,
         localizationsDelegates: const [
@@ -37,48 +38,25 @@ class MyApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('ko', 'KR'),
-        ],
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.priorityHigh,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          scaffoldBackgroundColor: AppColors.background,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.cardBackground,
-            foregroundColor: AppColors.textPrimary,
-            elevation: 0,
-          ),
-          cardTheme: CardThemeData(
-            color: AppColors.cardBackground,
-            elevation: 2,
-            shadowColor: AppColors.shadow,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-            backgroundColor: AppColors.priorityHigh,
-            foregroundColor: Colors.white,
-          ),
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: AppColors.cardBackground,
-            selectedItemColor: AppColors.priorityHigh,
-            unselectedItemColor: AppColors.textSecondary,
-            type: BottomNavigationBarType.fixed,
-          ),
-        ),
-        home: const AppInitializer(),
+        supportedLocales: const [Locale('ko', 'KR')],
+        // 새로운 테마 시스템 적용
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system, // 시스템 설정에 따라 자동 전환
+        routerConfig: appRouter,
+        builder: (context, child) {
+          // 앱 전체를 AppInitializer로 감싸서 TodoProvider 초기화 보장
+          return AppInitializer(child: child ?? const SizedBox());
+        },
       ),
     );
   }
 }
 
 class AppInitializer extends StatelessWidget {
-  const AppInitializer({super.key});
+  final Widget child;
+
+  const AppInitializer({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -87,61 +65,13 @@ class AppInitializer extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
-        
-        return const MainScreen();
+
+        // 초기화 완료 후 실제 앱 화면 표시
+        return child;
       },
-    );
-  }
-}
-
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
-
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const CalendarScreen(),
-    const SettingsScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.auto_awesome),
-            label: '오늘',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: '달력',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '설정',
-          ),
-        ],
-      ),
     );
   }
 }

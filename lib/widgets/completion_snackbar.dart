@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/colors.dart';
+import '../theme/app_colors.dart';
 
 class CompletionSnackBar extends StatelessWidget {
   final VoidCallback onUndo;
@@ -28,11 +28,7 @@ class CompletionSnackBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.check_circle,
-            color: Colors.white,
-            size: 20,
-          ),
+          const Icon(Icons.check_circle, color: Colors.white, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -52,14 +48,11 @@ class CompletionSnackBar extends StatelessWidget {
             ),
             child: const Text(
               '되돌리기',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
         ],
       ),
     );
   }
-} 
+}

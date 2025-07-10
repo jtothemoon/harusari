@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../utils/colors.dart';
+import '../theme/app_colors.dart';
 import '../providers/todo_provider.dart';
 import '../models/todo.dart';
 import '../widgets/todo_card.dart';
@@ -136,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // 진행률 표시기
               if (todoProvider.todos.isNotEmpty)
                 TodoProgressIndicator(todos: todoProvider.todos),
-              
+
               // 인라인 할 일 추가 위젯 (편집 모드일 때만 표시)
               if (_isAddingTodo)
                 InlineAddTodo(
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
 
                     await todoProvider.addTodo(title, priority);
-                    
+
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -172,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       );
                     }
-                    
+
                     // 편집 모드 종료
                     setState(() {
                       _isAddingTodo = false;
@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
                 ),
-              
+
               // 할 일 목록 (미완료만)
               Expanded(
                 child: todoProvider.todos.isEmpty && !_isAddingTodo
@@ -196,46 +196,58 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       )
                     : incompleteTodos.isEmpty && !_isAddingTodo
-                        ? EmptyStates.allCompleted()
-                        : AnimationLimiter(
-                            child: ListView.builder(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.all(16),
-                              itemCount: incompleteTodos.length,
-                              itemBuilder: (context, index) {
-                                final todo = incompleteTodos[index];
-                                return AnimationConfiguration.staggeredList(
-                                  position: index,
-                                  duration: const Duration(milliseconds: 375),
-                                  child: SlideAnimation(
-                                    verticalOffset: 50.0,
-                                    child: FadeInAnimation(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(bottom: 8),
-                                        child: TodoCard(
-                                          key: Key('todo_card_${todo.id}'),
-                                          todo: todo,
-                                          onTap: () {
-                                            // 카드 클릭 시 편집 모드로 전환
-                                            // TodoCard 내부에서 처리하므로 여기서는 빈 함수
-                                          },
-                                          onCheckboxChanged: (value) {
-                                            if (value == true) {
-                                              todoProvider.completeTodo(todo.id!);
-                                            }
-                                          },
-                                          onUpdate: (title, priority, callback) async {
-                                            await todoProvider.updateTodo(todo.id!, title, priority);
+                    ? EmptyStates.allCompleted()
+                    : AnimationLimiter(
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: incompleteTodos.length,
+                          itemBuilder: (context, index) {
+                            final todo = incompleteTodos[index];
+                            return AnimationConfiguration.staggeredList(
+                              position: index,
+                              duration: const Duration(milliseconds: 375),
+                              child: SlideAnimation(
+                                verticalOffset: 50.0,
+                                child: FadeInAnimation(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: TodoCard(
+                                      key: Key('todo_card_${todo.id}'),
+                                      todo: todo,
+                                      onTap: () {
+                                        // 카드 클릭 시 편집 모드로 전환
+                                        // TodoCard 내부에서 처리하므로 여기서는 빈 함수
+                                      },
+                                      onCheckboxChanged: (value) {
+                                        if (value == true) {
+                                          todoProvider.completeTodo(todo.id!);
+                                        }
+                                      },
+                                      onUpdate:
+                                          (title, priority, callback) async {
+                                            await todoProvider.updateTodo(
+                                              todo.id!,
+                                              title,
+                                              priority,
+                                            );
                                             if (todoProvider.error != null) {
                                               if (context.mounted) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
                                                   SnackBar(
                                                     content: Text(
                                                       todoProvider.error!,
-                                                      style: const TextStyle(color: Colors.white),
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                      ),
                                                     ),
-                                                    backgroundColor: AppColors.priorityHigh,
-                                                    duration: const Duration(seconds: 2),
+                                                    backgroundColor:
+                                                        AppColors.priorityHigh,
+                                                    duration: const Duration(
+                                                      seconds: 2,
+                                                    ),
                                                   ),
                                                 );
                                               }
@@ -244,43 +256,55 @@ class _HomeScreenState extends State<HomeScreen> {
                                               return;
                                             }
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 const SnackBar(
                                                   content: Text(
                                                     '할 일이 수정되었습니다!',
-                                                    style: TextStyle(color: Colors.white),
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
                                                   ),
-                                                  backgroundColor: AppColors.priorityMedium,
-                                                  duration: Duration(seconds: 1),
+                                                  backgroundColor:
+                                                      AppColors.priorityMedium,
+                                                  duration: Duration(
+                                                    seconds: 1,
+                                                  ),
                                                 ),
                                               );
                                             }
                                             callback(true); // 성공
                                           },
-                                          onDelete: () async {
-                                            await todoProvider.deleteTodo(todo.id!);
-                                            
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    '할 일이 삭제되었습니다',
-                                                    style: TextStyle(color: Colors.white),
-                                                  ),
-                                                  backgroundColor: AppColors.priorityHigh,
-                                                  duration: Duration(seconds: 2),
+                                      onDelete: () async {
+                                        await todoProvider.deleteTodo(todo.id!);
+
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                '할 일이 삭제되었습니다',
+                                                style: TextStyle(
+                                                  color: Colors.white,
                                                 ),
-                                              );
-                                            }
-                                          },
-                                        ),
-                                      ),
+                                              ),
+                                              backgroundColor:
+                                                  AppColors.priorityHigh,
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        }
+                                      },
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                          ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
               ),
             ],
           );
@@ -307,7 +331,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showCompletionSnackBar(BuildContext context, TodoProvider todoProvider) {
+  void _showCompletionSnackBar(
+    BuildContext context,
+    TodoProvider todoProvider,
+  ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: CompletionSnackBar(
@@ -341,4 +368,4 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollController.dispose();
     super.dispose();
   }
-} 
+}

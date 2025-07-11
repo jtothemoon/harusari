@@ -47,11 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '오늘의 할 일',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: AppColors.getTextPrimaryColor(context),
           ),
         ),
         centerTitle: true,
@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     '할 일을 불러오는 중...',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.getTextSecondaryColor(context),
                     ),
                   ),
                 ],
@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     todoProvider.error!,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.getTextSecondaryColor(context),
                     ),
                   ),
                   const SizedBox(height: 16),

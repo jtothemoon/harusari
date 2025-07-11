@@ -178,12 +178,14 @@ class _InlineAddTodoState extends State<InlineAddTodo>
                         hintText: '오늘 하고 싶은 일을 입력하세요',
                         border: InputBorder.none,
                         hintStyle: TextStyle(
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                          color: AppColors.getTextSecondaryColor(
+                            context,
+                          ).withValues(alpha: 0.7),
                         ),
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.textPrimary,
+                        color: AppColors.getTextPrimaryColor(context),
                       ),
                       onSubmitted: (_) => _addTodo(),
                     ),
@@ -192,9 +194,9 @@ class _InlineAddTodoState extends State<InlineAddTodo>
                   // 취소 버튼
                   IconButton(
                     onPressed: widget.onCancel,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.close,
-                      color: AppColors.textSecondary,
+                      color: AppColors.getTextSecondaryColor(context),
                     ),
                   ),
                   // 추가 버튼

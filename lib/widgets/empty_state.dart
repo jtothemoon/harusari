@@ -103,7 +103,7 @@ class _EmptyStateState extends State<EmptyState>
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                              color: AppColors.getTextPrimaryColor(context),
                               fontSize: widget.isCompact ? 16 : null,
                             ),
                         textAlign: TextAlign.center,
@@ -112,7 +112,7 @@ class _EmptyStateState extends State<EmptyState>
                       Text(
                         widget.subtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.getTextSecondaryColor(context),
                           height: 1.5,
                           fontSize: widget.isCompact ? 12 : null,
                         ),

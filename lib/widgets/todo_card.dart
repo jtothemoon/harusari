@@ -137,10 +137,10 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
                 Expanded(
                   child: Text(
                     widget.todo.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
+                      color: AppColors.getTextPrimaryColor(context),
                     ),
                   ),
                 ),
@@ -207,10 +207,10 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
       children: [
         TextField(
           controller: _textController,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: AppColors.getTextPrimaryColor(context),
           ),
           decoration: const InputDecoration(
             border: InputBorder.none,

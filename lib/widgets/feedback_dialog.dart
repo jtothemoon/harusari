@@ -116,7 +116,9 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
           keyboardType: TextInputType.multiline,
           decoration: InputDecoration(
             hintText: '예시) 할 일 완료 시 알림음이 들렸으면 좋겠어요.',
-            hintStyle: TextStyle(color: AppColors.textSecondary),
+            hintStyle: TextStyle(
+              color: AppColors.getTextSecondaryColor(context),
+            ),
             errorText: _messageError,
           ),
         ),
@@ -135,14 +137,19 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             hintText: 'example@email.com',
-            hintStyle: TextStyle(color: AppColors.textSecondary),
+            hintStyle: TextStyle(
+              color: AppColors.getTextSecondaryColor(context),
+            ),
             errorText: _emailError,
           ),
         ),
         const SizedBox(height: 16),
         Text(
           '답변을 받으시려면 이메일 주소를 입력해주세요. 이메일 주소는 답변 용도 외에 사용되지 않습니다.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          style: TextStyle(
+            color: AppColors.getTextSecondaryColor(context),
+            fontSize: 12,
+          ),
         ),
       ],
     );
@@ -229,12 +236,12 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.cardBackground,
+      backgroundColor: AppColors.getCardBackgroundColor(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       title: Text(
         _getTitle(),
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: AppColors.getTextPrimaryColor(context),
           fontWeight: FontWeight.bold,
         ),
       ),

@@ -28,35 +28,59 @@ class AppColors {
   /// 보조 색상 - 주 색상과 조화를 이루는 색상
   static const Color secondary = Color(0xFF03DAC6);
 
-  // === 배경 및 표면 색상 ===
+  // === 라이트 테마 색상 ===
 
-  /// 앱 전체 배경색
-  static const Color background = Color(0xFFFAFAFA);
+  /// 앱 전체 배경색 (라이트)
+  static const Color lightBackground = Color(0xFFFAFAFA);
 
-  /// 카드 및 위젯 배경색
-  static const Color cardBackground = Colors.white;
+  /// 카드 및 위젯 배경색 (라이트)
+  static const Color lightCardBackground = Colors.white;
 
-  /// 표면 색상 (다이얼로그, 바텀시트 등)
-  static const Color surface = Colors.white;
+  /// 표면 색상 (라이트)
+  static const Color lightSurface = Colors.white;
 
-  // === 텍스트 색상 ===
+  /// 주 텍스트 색상 (라이트)
+  static const Color lightTextPrimary = Color(0xFF212121);
 
-  /// 주 텍스트 색상
-  static const Color textPrimary = Color(0xFF212121);
+  /// 보조 텍스트 색상 (라이트)
+  static const Color lightTextSecondary = Color(0xFF757575);
 
-  /// 보조 텍스트 색상 (설명, 부가 정보)
-  static const Color textSecondary = Color(0xFF757575);
+  /// 비활성화된 텍스트 색상 (라이트)
+  static const Color lightTextDisabled = Color(0xFFBDBDBD);
 
-  /// 비활성화된 텍스트 색상
-  static const Color textDisabled = Color(0xFFBDBDBD);
+  /// 구분선 색상 (라이트)
+  static const Color lightDivider = Color(0xFFE0E0E0);
 
-  // === UI 요소 색상 ===
+  /// 그림자 색상 (라이트)
+  static const Color lightShadow = Color(0x1A000000);
 
-  /// 그림자 색상
-  static const Color shadow = Color(0x1A000000);
+  // === 다크 테마 색상 ===
 
-  /// 구분선 색상
-  static const Color divider = Color(0xFFE0E0E0);
+  /// 앱 전체 배경색 (다크)
+  static const Color darkBackground = Color(0xFF121212);
+
+  /// 카드 및 위젯 배경색 (다크)
+  static const Color darkCardBackground = Color(0xFF1E1E1E);
+
+  /// 표면 색상 (다크)
+  static const Color darkSurface = Color(0xFF2D2D2D);
+
+  /// 주 텍스트 색상 (다크)
+  static const Color darkTextPrimary = Color(0xFFE0E0E0);
+
+  /// 보조 텍스트 색상 (다크)
+  static const Color darkTextSecondary = Color(0xFFB3B3B3);
+
+  /// 비활성화된 텍스트 색상 (다크)
+  static const Color darkTextDisabled = Color(0xFF6D6D6D);
+
+  /// 구분선 색상 (다크)
+  static const Color darkDivider = Color(0xFF3D3D3D);
+
+  /// 그림자 색상 (다크)
+  static const Color darkShadow = Color(0x40000000);
+
+  // === 공통 색상 ===
 
   /// 에러 색상
   static const Color error = Color(0xFFB00020);
@@ -67,19 +91,89 @@ class AppColors {
   /// 경고 색상
   static const Color warning = Color(0xFFFF9800);
 
-  // === 다크 테마 색상 (필요시 사용) ===
+  // === 동적 색상 선택 메서드 ===
 
-  /// 다크 테마 배경색
-  static const Color darkBackground = Color(0xFF121212);
+  /// 현재 테마에 따른 배경색 반환
+  static Color getBackgroundColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkBackground
+        : lightBackground;
+  }
 
-  /// 다크 테마 카드 배경색
-  static const Color darkCardBackground = Color(0xFF1E1E1E);
+  /// 현재 테마에 따른 카드 배경색 반환
+  static Color getCardBackgroundColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkCardBackground
+        : lightCardBackground;
+  }
 
-  /// 다크 테마 주 텍스트 색상
-  static const Color darkTextPrimary = Colors.white;
+  /// 현재 테마에 따른 표면 색상 반환
+  static Color getSurfaceColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkSurface
+        : lightSurface;
+  }
 
-  /// 다크 테마 보조 텍스트 색상
-  static const Color darkTextSecondary = Color(0xFFB3B3B3);
+  /// 현재 테마에 따른 주 텍스트 색상 반환
+  static Color getTextPrimaryColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkTextPrimary
+        : lightTextPrimary;
+  }
+
+  /// 현재 테마에 따른 보조 텍스트 색상 반환
+  static Color getTextSecondaryColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkTextSecondary
+        : lightTextSecondary;
+  }
+
+  /// 현재 테마에 따른 비활성화 텍스트 색상 반환
+  static Color getTextDisabledColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkTextDisabled
+        : lightTextDisabled;
+  }
+
+  /// 현재 테마에 따른 구분선 색상 반환
+  static Color getDividerColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkDivider
+        : lightDivider;
+  }
+
+  /// 현재 테마에 따른 그림자 색상 반환
+  static Color getShadowColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkShadow
+        : lightShadow;
+  }
+
+  // === 기존 호환성 유지를 위한 정적 색상 (deprecated) ===
+
+  /// @deprecated 대신 getBackgroundColor(context) 사용
+  static const Color background = lightBackground;
+
+  /// @deprecated 대신 getCardBackgroundColor(context) 사용
+  static const Color cardBackground = lightCardBackground;
+
+  /// @deprecated 대신 getSurfaceColor(context) 사용
+  static const Color surface = lightSurface;
+
+  /// @deprecated 대신 getTextPrimaryColor(context) 사용
+  static const Color textPrimary = lightTextPrimary;
+
+  /// @deprecated 대신 getTextSecondaryColor(context) 사용
+  static const Color textSecondary = lightTextSecondary;
+
+  /// @deprecated 대신 getTextDisabledColor(context) 사용
+  static const Color textDisabled = lightTextDisabled;
+
+  /// @deprecated 대신 getDividerColor(context) 사용
+  static const Color divider = lightDivider;
+
+  /// @deprecated 대신 getShadowColor(context) 사용
+  static const Color shadow = lightShadow;
 
   // === 유틸리티 메서드 ===
 

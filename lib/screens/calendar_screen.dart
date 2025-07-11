@@ -53,11 +53,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '완료 기록',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: AppColors.getTextPrimaryColor(context),
           ),
         ),
         centerTitle: true,
@@ -70,11 +70,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Container(
                 margin: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
+                  color: AppColors.getCardBackgroundColor(context),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadow.withValues(alpha: 0.1),
+                      color: AppColors.getShadowColor(
+                        context,
+                      ).withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -135,8 +137,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       return Center(
                         child: Text(
                           dayName,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: AppColors.getTextSecondaryColor(context),
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),
@@ -178,7 +180,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: AppColors.priorityHigh,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white,
+                                        color: AppColors.getCardBackgroundColor(
+                                          context,
+                                        ),
                                         width: 1,
                                       ),
                                     ),
@@ -194,7 +198,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: AppColors.priorityMedium,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white,
+                                        color: AppColors.getCardBackgroundColor(
+                                          context,
+                                        ),
                                         width: 1,
                                       ),
                                     ),
@@ -210,7 +216,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: AppColors.priorityLow,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white,
+                                        color: AppColors.getCardBackgroundColor(
+                                          context,
+                                        ),
                                         width: 1,
                                       ),
                                     ),
@@ -224,8 +232,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   calendarStyle: CalendarStyle(
                     outsideDaysVisible: false,
-                    weekendTextStyle: const TextStyle(
-                      color: AppColors.textPrimary,
+                    weekendTextStyle: TextStyle(
+                      color: AppColors.getTextPrimaryColor(context),
                     ),
                     holidayTextStyle: const TextStyle(
                       color: AppColors.priorityHigh,
@@ -242,35 +250,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                       shape: BoxShape.circle,
                     ),
-                    defaultTextStyle: const TextStyle(
-                      color: AppColors.textPrimary,
+                    defaultTextStyle: TextStyle(
+                      color: AppColors.getTextPrimaryColor(context),
                     ),
                   ),
-                  headerStyle: const HeaderStyle(
+                  headerStyle: HeaderStyle(
                     formatButtonVisible: false,
                     titleCentered: true,
                     titleTextStyle: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: AppColors.getTextPrimaryColor(context),
                     ),
                     leftChevronIcon: Icon(
                       Icons.chevron_left,
-                      color: AppColors.textPrimary,
+                      color: AppColors.getTextPrimaryColor(context),
                     ),
                     rightChevronIcon: Icon(
                       Icons.chevron_right,
-                      color: AppColors.textPrimary,
+                      color: AppColors.getTextPrimaryColor(context),
                     ),
                   ),
-                  daysOfWeekStyle: const DaysOfWeekStyle(
+                  daysOfWeekStyle: DaysOfWeekStyle(
                     weekdayStyle: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: AppColors.getTextSecondaryColor(context),
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
                     weekendStyle: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: AppColors.getTextSecondaryColor(context),
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
@@ -284,11 +292,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
+                      color: AppColors.getCardBackgroundColor(context),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.shadow.withValues(alpha: 0.1),
+                          color: AppColors.getShadowColor(
+                            context,
+                          ).withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -299,10 +309,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       children: [
                         Text(
                           '${_selectedDay!.year}년 ${_selectedDay!.month}월 ${_selectedDay!.day}일',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            color: AppColors.getTextPrimaryColor(context),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -318,7 +328,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   margin: const EdgeInsets.only(bottom: 8),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.background,
+                                    color: AppColors.getBackgroundColor(
+                                      context,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                       color: _getPriorityColor(
@@ -344,9 +356,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       Expanded(
                                         child: Text(
                                           todo.title,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 14,
-                                            color: AppColors.textPrimary,
+                                            color:
+                                                AppColors.getTextPrimaryColor(
+                                                  context,
+                                                ),
                                           ),
                                         ),
                                       ),

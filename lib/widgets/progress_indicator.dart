@@ -41,11 +41,11 @@ class _TodoProgressIndicatorState extends State<TodoProgressIndicator> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: AppColors.getCardBackgroundColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withValues(alpha: 0.1),
+            color: AppColors.getShadowColor(context).withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -61,7 +61,7 @@ class _TodoProgressIndicatorState extends State<TodoProgressIndicator> {
                 '오늘의 진행률',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: AppColors.getTextPrimaryColor(context),
                 ),
               ),
               Text(
@@ -76,7 +76,9 @@ class _TodoProgressIndicatorState extends State<TodoProgressIndicator> {
           const SizedBox(height: 12),
           LinearProgressIndicator(
             value: completionRate,
-            backgroundColor: AppColors.textSecondary.withValues(alpha: 0.2),
+            backgroundColor: AppColors.getTextSecondaryColor(
+              context,
+            ).withValues(alpha: 0.2),
             valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
@@ -85,7 +87,7 @@ class _TodoProgressIndicatorState extends State<TodoProgressIndicator> {
           Text(
             message,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary,
+              color: AppColors.getTextSecondaryColor(context),
               fontStyle: FontStyle.italic,
             ),
           ),

@@ -11,7 +11,6 @@ import '../widgets/progress_indicator.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/permission_dialog.dart';
 import '../services/notification_service.dart';
-import 'package:flutter/foundation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isAddingTodo = false;
+  int? _editingTodoId; // 현재 편집 중인 할 일의 ID
 
   @override
   void initState() {
@@ -299,9 +299,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: TodoCard(
                                       key: Key('todo_card_${todo.id}'),
                                       todo: todo,
+                                      isEditing: _editingTodoId == todo.id,
                                       onTap: () {
                                         // 카드 클릭 시 편집 모드로 전환
-                                        // TodoCard 내부에서 처리하므로 여기서는 빈 함수
+                                        setState(() {
+                                          _editingTodoId = todo.id;
+                                        });
+                                      },
+                                      onEditingCancelled: () {
+                                        // 편집 취소 시 상태 초기화
+                                        setState(() {
+                                          _editingTodoId = null;
+                                        });
                                       },
                                       onCheckboxChanged: (value) {
                                         if (value == true) {
@@ -359,6 +368,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                               );
                                             }
                                             callback(true); // 성공
+                                            // 편집 완료 후 상태 초기화
+                                            setState(() {
+                                              _editingTodoId = null;
+                                            });
                                           },
                                       onDelete: () async {
                                         await todoProvider.deleteTodo(todo.id!);
@@ -404,6 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 setState(() {
                   _isAddingTodo = true;
+                  _editingTodoId = null; // 새로운 할 일 추가 시 편집 상태 초기화
                 });
               },
               backgroundColor: AppColors.priorityMedium,

@@ -4,7 +4,9 @@ import '../theme/app_colors.dart';
 
 class TodoCard extends StatefulWidget {
   final Todo todo;
+  final bool isEditing;
   final VoidCallback? onTap;
+  final VoidCallback? onEditingCancelled;
   final ValueChanged<bool?>? onCheckboxChanged;
   final Function(String, Priority, Function(bool))? onUpdate;
   final VoidCallback? onDelete;
@@ -12,7 +14,9 @@ class TodoCard extends StatefulWidget {
   const TodoCard({
     super.key,
     required this.todo,
+    this.isEditing = false,
     this.onTap,
+    this.onEditingCancelled,
     this.onCheckboxChanged,
     this.onUpdate,
     this.onDelete,
@@ -23,7 +27,6 @@ class TodoCard extends StatefulWidget {
 }
 
 class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
-  bool _isEditing = false;
   late TextEditingController _textController;
   late Priority _currentPriority;
   late AnimationController _scaleController;
@@ -66,7 +69,7 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    if (_isEditing) {
+    if (widget.isEditing) {
       // 편집 모드일 때는 Dismissible 없이 Card만 반환
       return Card(
         margin: const EdgeInsets.only(bottom: 12),
@@ -113,11 +116,7 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
         child: const Icon(Icons.delete, color: Colors.white, size: 24),
       ),
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _isEditing = true;
-          });
-        },
+        onTap: widget.onTap,
         child: Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: Padding(
@@ -297,24 +296,18 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
     if (newTitle.isNotEmpty) {
       widget.onUpdate?.call(newTitle, _currentPriority, (success) {
         if (success) {
-          setState(() {
-            _isEditing = false;
-          });
+          widget.onEditingCancelled?.call();
         }
       });
     } else {
-      setState(() {
-        _isEditing = false;
-      });
+      widget.onEditingCancelled?.call();
     }
   }
 
   void _cancelEdit() {
-    setState(() {
-      _isEditing = false;
-      _textController.text = widget.todo.title;
-      _currentPriority = widget.todo.priority;
-    });
+    _textController.text = widget.todo.title;
+    _currentPriority = widget.todo.priority;
+    widget.onEditingCancelled?.call();
   }
 
   Future<bool> _showDeleteConfirmDialog() async {

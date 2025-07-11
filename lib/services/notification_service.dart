@@ -1,8 +1,6 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
-import 'dart:io' show Platform;
-import 'dart:typed_data' show Int64List;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -244,12 +242,6 @@ class NotificationService {
   Future<void> clearBadge() async {
     try {
       if (Platform.isIOS) {
-        final IOSFlutterLocalNotificationsPlugin? iosImplementation =
-            _flutterLocalNotificationsPlugin
-                .resolvePlatformSpecificImplementation<
-                  IOSFlutterLocalNotificationsPlugin
-                >();
-
         // 방법 1: 배지를 0으로 설정하는 알림 생성
         await _flutterLocalNotificationsPlugin.show(
           999, // 배지 초기화 전용 ID
@@ -304,12 +296,6 @@ class NotificationService {
 
       if (Platform.isIOS) {
         // iOS에서 배지 초기화를 위한 강화된 방법
-        final IOSFlutterLocalNotificationsPlugin? iosImplementation =
-            _flutterLocalNotificationsPlugin
-                .resolvePlatformSpecificImplementation<
-                  IOSFlutterLocalNotificationsPlugin
-                >();
-
         // 방법 1: 배지를 0으로 설정하는 알림 여러 개 생성 후 취소
         for (int i = 997; i <= 999; i++) {
           await _flutterLocalNotificationsPlugin.show(

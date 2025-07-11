@@ -1,24 +1,43 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import '../models/todo.dart';
 import '../services/database_service.dart';
+import '../services/day_transition_service.dart';
 import '../services/notification_service.dart';
-import '../utils/constants.dart';
-import 'dart:async';
+import '../services/timer_manager.dart';
+import '../utils/todo_validation_utils.dart';
 
+/// 할 일 관리를 담당하는 Provider 클래스
+///
+/// 1-3-5 법칙을 기반으로 한 할 일 관리 시스템:
+/// - 중요도 높음: 최대 1개
+/// - 중요도 보통: 최대 3개
+/// - 중요도 낮음: 최대 5개
+///
+/// 주요 기능:
+/// - 할 일 CRUD 작업
+/// - Undo 기능 (5초 타이머)
+/// - 하루 전환 기능 (설정된 시간에 미완료 할 일 자동 삭제)
+/// - 푸시 알림 관리
+/// - 1-3-5 법칙 검증
 class TodoProvider with ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
+  final TimerManager _timerManager = TimerManager();
+  final DayTransitionService _dayTransitionService = DayTransitionService();
 
+  // ==========================================
+  // 상태 변수들
+  // ==========================================
   List<Todo> _todos = [];
   bool _isLoading = false;
   String? _error;
 
   // Undo 기능을 위한 상태
   Todo? _lastCompletedTodo;
-  Timer? _undoTimer;
 
   // 하루 전환 기능 관련 (현재 비활성화)
-  Timer? _dayTransitionTimer;
   TimeOfDay _dayStartTime = const TimeOfDay(hour: 6, minute: 0);
 
   // 하루 시작 알림 상태
@@ -31,7 +50,9 @@ class TodoProvider with ChangeNotifier {
   // 캐싱
   DateTime? _lastLoadedDate;
 
+  // ==========================================
   // Getters
+  // ==========================================
   List<Todo> get todos => _todos;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -50,6 +71,9 @@ class TodoProvider with ChangeNotifier {
   int get lowPriorityCount =>
       _todos.where((todo) => todo.priority == Priority.low).length;
 
+  // ==========================================
+  // 할 일 관리 메서드들
+  // ==========================================
   // 오늘의 할 일 로드 (완료된 것도 포함)
   Future<void> loadTodosForToday() async {
     final today = DateTime.now();
@@ -131,7 +155,10 @@ class TodoProvider with ChangeNotifier {
         notifyListeners();
 
         // 5초 후 Undo 타이머 시작
-        _startUndoTimer();
+        _timerManager.startUndoTimer(() {
+          _lastCompletedTodo = null;
+          notifyListeners();
+        });
       }
     } catch (e) {
       _error = '할 일을 완료하는데 실패했습니다: $e';
@@ -150,31 +177,15 @@ class TodoProvider with ChangeNotifier {
 
         // 1-3-5 법칙 검증
         if (priority != todo.priority) {
-          final tempTodos = List<Todo>.from(_todos)..removeAt(index);
-          final tempHighCount = tempTodos
-              .where((t) => t.priority == Priority.high)
-              .length;
-          final tempMediumCount = tempTodos
-              .where((t) => t.priority == Priority.medium)
-              .length;
-          final tempLowCount = tempTodos
-              .where((t) => t.priority == Priority.low)
-              .length;
+          // 기존 할 일을 제외한 검증
+          bool canUpdate = TodoValidationUtils.canUpdateTodoPriority(
+            todo.id!,
+            priority,
+            _todos,
+          );
 
-          bool canUpdate = false;
-          switch (priority) {
-            case Priority.high:
-              canUpdate = tempHighCount < 1;
-              break;
-            case Priority.medium:
-              canUpdate = tempMediumCount < 3;
-              break;
-            case Priority.low:
-              canUpdate = tempLowCount < 5;
-              break;
-          }
           if (!canUpdate) {
-            _error = _getPriorityLimitMessage(priority);
+            _error = TodoValidationUtils.getPriorityLimitMessage(priority);
             notifyListeners();
             return;
           }
@@ -192,17 +203,6 @@ class TodoProvider with ChangeNotifier {
     } catch (e) {
       _error = '할 일을 수정하는데 실패했습니다: $e';
       notifyListeners();
-    }
-  }
-
-  String _getPriorityLimitMessage(Priority priority) {
-    switch (priority) {
-      case Priority.high:
-        return AppConstants.priorityHighLimitMessage;
-      case Priority.medium:
-        return AppConstants.priorityMediumLimitMessage;
-      case Priority.low:
-        return AppConstants.priorityLowLimitMessage;
     }
   }
 
@@ -279,35 +279,22 @@ class TodoProvider with ChangeNotifier {
 
   // 1-3-5 법칙 검증
   bool canAddTodo(Priority priority) {
-    switch (priority) {
-      case Priority.high:
-        return highPriorityCount < AppConstants.maxHighPriorityTodos;
-      case Priority.medium:
-        return mediumPriorityCount < AppConstants.maxMediumPriorityTodos;
-      case Priority.low:
-        return lowPriorityCount < AppConstants.maxLowPriorityTodos;
-    }
+    return TodoValidationUtils.canAddTodo(priority, _todos);
   }
 
   // 다음 우선순위 추천
   Priority getRecommendedPriority() {
-    if (highPriorityCount < 1) return Priority.high;
-    if (mediumPriorityCount < 3) return Priority.medium;
-    if (lowPriorityCount < 5) return Priority.low;
-    return Priority.low; // 기본값
+    return TodoValidationUtils.getRecommendedPriority(_todos);
   }
 
   // 각 우선순위별 남은 개수 계산
   int getRemainingCount(Priority priority) {
-    switch (priority) {
-      case Priority.high:
-        return AppConstants.maxHighPriorityTodos - highPriorityCount;
-      case Priority.medium:
-        return AppConstants.maxMediumPriorityTodos - mediumPriorityCount;
-      case Priority.low:
-        return AppConstants.maxLowPriorityTodos - lowPriorityCount;
-    }
+    return TodoValidationUtils.getRemainingCount(priority, _todos);
   }
+
+  // ==========================================
+  // Undo 기능 관련 메서드들
+  // ==========================================
 
   // Undo 기능
   Future<void> undoLastCompletion() async {
@@ -323,7 +310,7 @@ class TodoProvider with ChangeNotifier {
         }
 
         _lastCompletedTodo = null;
-        _cancelUndoTimer();
+        _timerManager.cancelUndoTimer();
         notifyListeners();
       } catch (e) {
         _error = '할 일을 되돌리는데 실패했습니다: $e';
@@ -332,20 +319,9 @@ class TodoProvider with ChangeNotifier {
     }
   }
 
-  // Undo 타이머 시작
-  void _startUndoTimer() {
-    _cancelUndoTimer();
-    _undoTimer = Timer(const Duration(seconds: 5), () {
-      _lastCompletedTodo = null;
-      notifyListeners();
-    });
-  }
-
-  // Undo 타이머 취소
-  void _cancelUndoTimer() {
-    _undoTimer?.cancel();
-    _undoTimer = null;
-  }
+  // ==========================================
+  // 설정 관리 메서드들
+  // ==========================================
 
   // 하루 시작 시간 설정
   Future<void> setDayStartTime(TimeOfDay time) async {
@@ -353,7 +329,9 @@ class TodoProvider with ChangeNotifier {
     _dayStartTime = time;
 
     // 타이머 재설정
-    _scheduleDayTransition();
+    _timerManager.scheduleDayTransition(_dayStartTime, () {
+      _performDayTransition();
+    });
     notifyListeners();
 
     // 데이터베이스에 저장 (백그라운드)
@@ -494,109 +472,43 @@ class TodoProvider with ChangeNotifier {
     }
   }
 
-  // 앱 시작 시 하루 전환 체크
+  // 앱 시작 시 하루 전환 체크 (현재 비활성화)
   // Future<void> _checkAndPerformDayTransition() async {
-  //   final now = DateTime.now();
-  //   final today = DateTime(now.year, now.month, now.day);
-  //   final todayTransition = today.add(
-  //     Duration(
-  //       hours: _dayStartTime.hour,
-  //       minutes: _dayStartTime.minute,
-  //     ),
+  //   final success = await _dayTransitionService.checkAndPerformDayTransitionOnAppStart(
+  //     dayStartTime: _dayStartTime,
+  //     todos: _todos,
+  //     isNotificationEnabled: _isNotificationEnabled,
+  //     isVibrationEnabled: _isVibrationEnabled,
   //   );
-
-  //   // 현재 시간이 오늘의 전환 시간을 지났는지 확인
-  //   if (now.isAfter(todayTransition)) {
-  //     if (kDebugMode) {
-  //       print('앱 시작 시 하루 전환 필요: 현재 ${now.hour}:${now.minute}, 전환 시간 ${_dayStartTime.hour}:${_dayStartTime.minute}');
-  //     }
-  //     await _performDayTransition();
+  //
+  //   if (success) {
+  //     // 성공 시 할 일 목록 새로고침
+  //     await loadTodos();
   //   }
   // }
 
-  // 하루 전환 타이머 스케줄링
-  void _scheduleDayTransition() {
-    _cancelDayTransitionTimer();
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final todayTransition = today.add(
-      Duration(hours: _dayStartTime.hour, minutes: _dayStartTime.minute),
-    );
-
-    DateTime nextTransition;
-    if (now.isBefore(todayTransition)) {
-      // 오늘의 전환 시간이 아직 안 지났으면 오늘로 설정
-      nextTransition = todayTransition;
-    } else {
-      // 오늘의 전환 시간이 지났으면 내일로 설정
-      nextTransition = todayTransition.add(const Duration(days: 1));
-    }
-
-    final timeUntilTransition = nextTransition.difference(now);
-
-    if (kDebugMode) {
-      print(
-        '다음 하루 전환: ${nextTransition.toString()}, ${timeUntilTransition.inMinutes}분 후',
-      );
-    }
-
-    _dayTransitionTimer = Timer(timeUntilTransition, () {
-      _performDayTransition();
-      _scheduleDayTransition(); // 다음 날 타이머 재설정
-    });
-  }
+  // ==========================================
+  // 하루 전환 기능 관련 메서드들
+  // ==========================================
 
   // 하루 전환 실행
   Future<void> _performDayTransition() async {
-    try {
-      // 미완료 할 일들을 모두 삭제
-      final incompleteTodos = _todos
-          .where((todo) => !todo.isCompleted)
-          .toList();
+    final result = await _dayTransitionService.performDayTransition(
+      todos: _todos,
+      isNotificationEnabled: _isNotificationEnabled,
+      isVibrationEnabled: _isVibrationEnabled,
+    );
 
-      if (kDebugMode) {
-        print('하루 전환 시작: ${incompleteTodos.length}개의 미완료 할 일 발견');
-      }
-
-      for (final todo in incompleteTodos) {
-        await _databaseService.deleteTodo(todo.id!);
-        if (kDebugMode) {
-          print('삭제된 할 일: ${todo.title}');
-        }
-      }
-
-      // 메모리에서도 제거
-      _todos.removeWhere((todo) => !todo.isCompleted);
-
-      // 알림 설정에 따라 푸시 알림 발송
-      if (_isNotificationEnabled) {
-        await NotificationService().showDayStartNotification(
-          enableVibration: _isVibrationEnabled,
-        );
-      }
-
-      // 하루 시작 알림 플래그 설정 (앱 내 스낵바용)
-      _shouldShowDayStartNotification = true;
+    if (result.success) {
+      // 성공 시 메모리 상태 업데이트
+      _todos = result.remainingTodos;
+      _shouldShowDayStartNotification = result.shouldShowNotification;
       notifyListeners();
-
-      if (kDebugMode) {
-        print('하루 전환 완료: ${incompleteTodos.length}개의 미완료 할 일이 삭제되었습니다.');
-        print('남은 할 일: ${_todos.length}개');
-      }
-    } catch (e) {
-      _error = '하루 전환 중 오류가 발생했습니다: $e';
+    } else {
+      // 실패 시 에러 처리
+      _error = result.error;
       notifyListeners();
-      if (kDebugMode) {
-        print('하루 전환 오류: $e');
-      }
     }
-  }
-
-  // 하루 전환 타이머 취소
-  void _cancelDayTransitionTimer() {
-    _dayTransitionTimer?.cancel();
-    _dayTransitionTimer = null;
   }
 
   // 하루 시작 알림 플래그 리셋
@@ -642,8 +554,7 @@ class TodoProvider with ChangeNotifier {
 
   @override
   void dispose() {
-    _cancelUndoTimer();
-    _cancelDayTransitionTimer();
+    _timerManager.dispose();
     super.dispose();
   }
 }

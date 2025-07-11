@@ -187,13 +187,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             value: todoProvider.isNotificationEnabled,
                             onChanged: (value) async {
                               if (value) {
+                                // BuildContext를 미리 캐시해서 async gap 문제 해결
+                                final scaffoldMessenger = ScaffoldMessenger.of(
+                                  context,
+                                );
+
                                 // 알림 권한 요청
                                 final hasPermission =
                                     await NotificationService()
                                         .requestPermissions();
                                 if (!hasPermission) {
                                   if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    scaffoldMessenger.showSnackBar(
                                       const SnackBar(
                                         content: Text(
                                           '알림 권한이 필요합니다. 설정에서 권한을 허용해주세요.',
@@ -409,9 +414,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     // 스낵바를 올려서 전송이 성공했다는 것을 알려준다.
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('문의가 성공적으로 전송되었습니다.')));
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('문의가 성공적으로 전송되었습니다.')));
+    }
   }
 
   String _formatTime(TimeOfDay time) {

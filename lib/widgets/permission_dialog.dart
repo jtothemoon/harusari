@@ -22,7 +22,7 @@ class PermissionDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.priorityMedium.withOpacity(0.1),
+              color: AppColors.priorityMedium.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -60,7 +60,7 @@ class PermissionDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.priorityLow.withOpacity(0.1),
+              color: AppColors.priorityLow.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(

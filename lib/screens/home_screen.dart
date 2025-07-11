@@ -9,6 +9,9 @@ import '../widgets/inline_add_todo.dart';
 import '../widgets/completion_snackbar.dart';
 import '../widgets/progress_indicator.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/permission_dialog.dart';
+import '../services/notification_service.dart';
+import 'package:flutter/foundation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,12 +27,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+
     // 앱 시작 시 Provider 초기화 및 오늘의 할 일 로드
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final todoProvider = context.read<TodoProvider>();
         await todoProvider.initialize();
         await todoProvider.loadTodosForToday();
+
+        // 최초 실행 시 권한 요청 다이얼로그 표시
+        await _checkAndShowPermissionDialog();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -41,6 +48,76 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     });
+  }
+
+  // 최초 실행 시 권한 요청 다이얼로그 표시
+  Future<void> _checkAndShowPermissionDialog() async {
+    try {
+      final todoProvider = context.read<TodoProvider>();
+      final isFirstLaunch = await todoProvider.databaseService.getSetting(
+        'is_first_launch',
+      );
+
+      if (isFirstLaunch == null && mounted) {
+        // 최초 실행 - 사용자 친화적인 다이얼로그 표시
+        final shouldRequest = await PermissionDialog.show(context);
+
+        if (shouldRequest == true && mounted) {
+          // 사용자가 허용을 선택한 경우
+          final hasPermission = await NotificationService()
+              .requestPermissions();
+
+          if (hasPermission) {
+            // 권한 허용됨
+            await todoProvider.setNotificationEnabled(true);
+            await todoProvider.setVibrationEnabled(true);
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🎉 알림 설정이 완료되었습니다!'),
+                  backgroundColor: AppColors.priorityLow,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          } else {
+            // 권한 거부됨
+            await todoProvider.setNotificationEnabled(false);
+            await todoProvider.setVibrationEnabled(false);
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('알림 권한이 거부되었습니다. 설정에서 변경할 수 있습니다.'),
+                  backgroundColor: AppColors.priorityHigh,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          }
+        } else if (shouldRequest == false) {
+          // 사용자가 나중에를 선택한 경우
+          await todoProvider.setNotificationEnabled(false);
+          await todoProvider.setVibrationEnabled(false);
+        }
+
+        // 최초 실행 완료 표시
+        await todoProvider.databaseService.saveSetting(
+          'is_first_launch',
+          'false',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('권한 확인 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -63,6 +140,13 @@ class _HomeScreenState extends State<HomeScreen> {
           if (todoProvider.lastCompletedTodo != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _showCompletionSnackBar(context, todoProvider);
+            });
+          }
+
+          // 하루 시작 알림 표시
+          if (todoProvider.shouldShowDayStartNotification) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _showDayStartNotification(context, todoProvider);
             });
           }
 
@@ -350,6 +434,23 @@ class _HomeScreenState extends State<HomeScreen> {
         margin: const EdgeInsets.all(16),
       ),
     );
+  }
+
+  void _showDayStartNotification(
+    BuildContext context,
+    TodoProvider todoProvider,
+  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          '🌅 하루가 초기화되었습니다!\n🌱 어제 못한 일은 신경 쓰지 마세요. 오늘 하루만 생각해요!',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.priorityMedium,
+        duration: Duration(seconds: 4),
+      ),
+    );
+    todoProvider.clearDayStartNotification();
   }
 
   String _getPriorityLimitMessage(Priority priority) {

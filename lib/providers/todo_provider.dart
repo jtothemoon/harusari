@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/todo.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 import '../utils/constants.dart';
 import 'dart:async';
 
@@ -20,6 +21,13 @@ class TodoProvider with ChangeNotifier {
   Timer? _dayTransitionTimer;
   TimeOfDay _dayStartTime = const TimeOfDay(hour: 6, minute: 0);
 
+  // 하루 시작 알림 상태
+  bool _shouldShowDayStartNotification = false;
+
+  // 알림 설정
+  bool _isNotificationEnabled = true;
+  bool _isVibrationEnabled = true;
+
   // 캐싱
   DateTime? _lastLoadedDate;
 
@@ -29,6 +37,10 @@ class TodoProvider with ChangeNotifier {
   String? get error => _error;
   Todo? get lastCompletedTodo => _lastCompletedTodo;
   TimeOfDay get dayStartTime => _dayStartTime;
+  bool get shouldShowDayStartNotification => _shouldShowDayStartNotification;
+  bool get isNotificationEnabled => _isNotificationEnabled;
+  bool get isVibrationEnabled => _isVibrationEnabled;
+  DatabaseService get databaseService => _databaseService;
 
   // 우선순위별 개수 (완료된 할 일도 포함 - 1-3-5 법칙)
   int get highPriorityCount =>
@@ -389,11 +401,97 @@ class TodoProvider with ChangeNotifier {
   // Provider 초기화 시 하루 시작 시간 로드
   Future<void> initialize() async {
     await getDayStartTime();
+    await _loadNotificationSettings();
+    await _checkFirstLaunchAndRequestPermissions();
 
     // 하루 전환 기능은 현재 비활성화됨
     // 필요시 아래 주석을 해제하여 활성화 가능:
     // await _checkAndPerformDayTransition();
     // _scheduleDayTransition();
+  }
+
+  // 최초 실행 시 권한 요청
+  Future<void> _checkFirstLaunchAndRequestPermissions() async {
+    try {
+      final isFirstLaunch = await _databaseService.getSetting(
+        'is_first_launch',
+      );
+
+      if (isFirstLaunch == null) {
+        // 최초 실행
+        if (kDebugMode) {
+          print('앱 최초 실행: 알림 권한 요청');
+        }
+
+        final hasPermission = await NotificationService().requestPermissions();
+
+        if (hasPermission) {
+          // 권한 허용됨 - 알림 설정 켜기
+          _isNotificationEnabled = true;
+          _isVibrationEnabled = true;
+
+          await _databaseService.saveSetting('notification_enabled', 'true');
+          await _databaseService.saveSetting('vibration_enabled', 'true');
+
+          if (kDebugMode) {
+            print('알림 권한 허용됨: 알림 설정 활성화');
+          }
+        } else {
+          // 권한 거부됨 - 알림 설정 끄기
+          _isNotificationEnabled = false;
+          _isVibrationEnabled = false;
+
+          await _databaseService.saveSetting('notification_enabled', 'false');
+          await _databaseService.saveSetting('vibration_enabled', 'false');
+
+          if (kDebugMode) {
+            print('알림 권한 거부됨: 알림 설정 비활성화');
+          }
+        }
+
+        // 최초 실행 완료 표시
+        await _databaseService.saveSetting('is_first_launch', 'false');
+      } else {
+        // 최초 실행이 아님 - 권한 상태만 확인
+        final hasPermission = await NotificationService().hasPermissions();
+
+        if (!hasPermission && _isNotificationEnabled) {
+          // 권한이 없는데 설정은 켜져 있음 - 설정 끄기
+          _isNotificationEnabled = false;
+          await _databaseService.saveSetting('notification_enabled', 'false');
+
+          if (kDebugMode) {
+            print('알림 권한 없음: 알림 설정 비활성화');
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('권한 확인 중 오류: $e');
+      }
+    }
+  }
+
+  // 알림 설정 로드
+  Future<void> _loadNotificationSettings() async {
+    try {
+      final notificationEnabled = await _databaseService.getSetting(
+        'notification_enabled',
+      );
+      final vibrationEnabled = await _databaseService.getSetting(
+        'vibration_enabled',
+      );
+
+      _isNotificationEnabled =
+          notificationEnabled == 'true' ||
+          notificationEnabled == null; // 기본값 true
+      _isVibrationEnabled =
+          vibrationEnabled == 'true' || vibrationEnabled == null; // 기본값 true
+    } catch (e) {
+      if (kDebugMode) {
+        print('알림 설정 로드 실패: $e');
+      }
+    }
   }
 
   // 앱 시작 시 하루 전환 체크
@@ -470,6 +568,16 @@ class TodoProvider with ChangeNotifier {
 
       // 메모리에서도 제거
       _todos.removeWhere((todo) => !todo.isCompleted);
+
+      // 알림 설정에 따라 푸시 알림 발송
+      if (_isNotificationEnabled) {
+        await NotificationService().showDayStartNotification(
+          enableVibration: _isVibrationEnabled,
+        );
+      }
+
+      // 하루 시작 알림 플래그 설정 (앱 내 스낵바용)
+      _shouldShowDayStartNotification = true;
       notifyListeners();
 
       if (kDebugMode) {
@@ -489,6 +597,47 @@ class TodoProvider with ChangeNotifier {
   void _cancelDayTransitionTimer() {
     _dayTransitionTimer?.cancel();
     _dayTransitionTimer = null;
+  }
+
+  // 하루 시작 알림 플래그 리셋
+  void clearDayStartNotification() {
+    _shouldShowDayStartNotification = false;
+    notifyListeners();
+  }
+
+  // 알림 설정 변경
+  Future<void> setNotificationEnabled(bool enabled) async {
+    _isNotificationEnabled = enabled;
+    notifyListeners();
+
+    // 데이터베이스에 저장
+    try {
+      await _databaseService.saveSetting(
+        'notification_enabled',
+        enabled.toString(),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('알림 설정 저장 실패: $e');
+      }
+    }
+  }
+
+  Future<void> setVibrationEnabled(bool enabled) async {
+    _isVibrationEnabled = enabled;
+    notifyListeners();
+
+    // 데이터베이스에 저장
+    try {
+      await _databaseService.saveSetting(
+        'vibration_enabled',
+        enabled.toString(),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('진동 설정 저장 실패: $e');
+      }
+    }
   }
 
   @override

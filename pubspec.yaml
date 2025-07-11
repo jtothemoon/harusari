@@ -51,6 +51,9 @@ dependencies:
 
   flutter_dotenv: ^5.2.1 # .env 파일에서 환경 변수를 로드하는 패키지
 
+  # 로컬 알림
+  flutter_local_notifications: ^17.2.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

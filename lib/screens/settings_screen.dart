@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../clients/discord_webhook.dart';
+import '../services/notification_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -139,6 +140,123 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          // 알림 설정
+          Consumer<TodoProvider>(
+            builder: (context, todoProvider, child) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '알림 설정',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      // 푸시 알림 설정
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.notifications_outlined,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '푸시 알림',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '하루 시작 시 알림을 받습니다',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: todoProvider.isNotificationEnabled,
+                            onChanged: (value) async {
+                              if (value) {
+                                // 알림 권한 요청
+                                final hasPermission =
+                                    await NotificationService()
+                                        .requestPermissions();
+                                if (!hasPermission) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          '알림 권한이 필요합니다. 설정에서 권한을 허용해주세요.',
+                                        ),
+                                        backgroundColor: AppColors.priorityHigh,
+                                      ),
+                                    );
+                                  }
+                                  return;
+                                }
+                              }
+                              await todoProvider.setNotificationEnabled(value);
+                            },
+                            activeColor: AppColors.priorityLow,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // 진동 설정
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.vibration,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '진동',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '알림과 함께 진동을 울립니다',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: todoProvider.isVibrationEnabled,
+                            onChanged: todoProvider.isNotificationEnabled
+                                ? (value) async {
+                                    await todoProvider.setVibrationEnabled(
+                                      value,
+                                    );
+                                  }
+                                : null,
+                            activeColor: AppColors.priorityLow,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
           // 고객 문의/제안

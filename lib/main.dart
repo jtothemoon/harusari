@@ -5,6 +5,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'providers/todo_provider.dart';
+import 'services/notification_service.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
 
@@ -15,6 +16,12 @@ void main() async {
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+  // 알림 서비스 초기화
+  await NotificationService().initialize();
+
+  // 앱 시작 시 배지 및 알림 초기화
+  await NotificationService().clearAllNotificationsAndBadge();
+
   //화면 세로 고정
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
@@ -23,8 +30,44 @@ void main() async {
   FlutterNativeSplash.remove();
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // 앱이 포그라운드로 돌아올 때 배지 초기화
+    if (state == AppLifecycleState.resumed) {
+      _clearBadgeOnAppResume();
+    }
+  }
+
+  Future<void> _clearBadgeOnAppResume() async {
+    try {
+      await NotificationService().clearAllNotificationsAndBadge();
+      debugPrint('앱 포그라운드 진입 - 배지 초기화 완료');
+    } catch (e) {
+      debugPrint('앱 포그라운드 진입 - 배지 초기화 실패: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

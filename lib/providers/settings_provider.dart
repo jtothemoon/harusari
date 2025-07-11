@@ -138,6 +138,16 @@ class SettingsProvider with ChangeNotifier {
   // ==========================================
   Future<void> setNotificationEnabled(bool enabled) async {
     _isNotificationEnabled = enabled;
+
+    // 알림이 꺼지면 진동도 자동으로 끄기 (안드로이드 동작과 일치)
+    if (!enabled && _isVibrationEnabled) {
+      _isVibrationEnabled = false;
+      await _databaseService.saveSetting('vibration_enabled', 'false');
+      if (kDebugMode) {
+        print('알림 비활성화로 인해 진동도 자동 비활성화됨');
+      }
+    }
+
     notifyListeners();
 
     // 데이터베이스에 저장

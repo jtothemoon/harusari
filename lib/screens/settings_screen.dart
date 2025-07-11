@@ -261,7 +261,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Icon(
                             Icons.vibration,
-                            color: AppColors.primary,
+                            color: settingsProvider.isNotificationEnabled
+                                ? AppColors.primary
+                                : AppColors.getTextSecondaryColor(context),
                             size: 20,
                           ),
                           const SizedBox(width: 12),
@@ -271,37 +273,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Text(
                                   '진동',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color:
+                                            settingsProvider
+                                                .isNotificationEnabled
+                                            ? null
+                                            : AppColors.getTextSecondaryColor(
+                                                context,
+                                              ),
+                                      ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '알림 시 진동을 사용합니다',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  settingsProvider.isNotificationEnabled
+                                      ? '알림 시 진동을 사용합니다'
+                                      : '알림이 꺼져있어 진동을 사용할 수 없습니다',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: AppColors.getTextSecondaryColor(
+                                          context,
+                                        ),
+                                      ),
                                 ),
                               ],
                             ),
                           ),
                           Switch(
                             value: settingsProvider.isVibrationEnabled,
-                            onChanged: (value) async {
-                              await settingsProvider.setVibrationEnabled(value);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      value ? '진동이 활성화되었습니다' : '진동이 비활성화되었습니다',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    backgroundColor: AppColors.priorityLow,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            },
+                            onChanged: settingsProvider.isNotificationEnabled
+                                ? (value) async {
+                                    await settingsProvider.setVibrationEnabled(
+                                      value,
+                                    );
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            value
+                                                ? '진동이 활성화되었습니다'
+                                                : '진동이 비활성화되었습니다',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          backgroundColor:
+                                              AppColors.priorityLow,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                : null, // 알림이 꺼져있으면 null로 설정하여 비활성화
                           ),
                         ],
                       ),

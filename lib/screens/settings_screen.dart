@@ -2,11 +2,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../clients/discord_webhook.dart';
 import '../services/notification_service.dart';
+import '../services/onboarding_service.dart';
+import '../router.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -327,6 +330,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          // 온보딩 다시 보기
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('앱 도움말', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: _showOnboardingAgain,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.help_outline,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '온보딩 다시 보기',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '앱 사용법을 다시 확인해보세요',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: AppColors.textSecondary,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           // 앱 정보
           Card(
             child: Padding(
@@ -380,6 +446,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showOnboardingAgain() async {
+    // 온보딩 상태 초기화
+    await OnboardingService.resetOnboarding();
+
+    if (mounted) {
+      // 온보딩 화면으로 이동
+      context.go(Routes.onboarding);
+    }
   }
 
   Future<void> _showFeedbackDialog() async {

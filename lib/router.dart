@@ -3,9 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'services/onboarding_service.dart';
 
 // 라우트 이름 상수
 class Routes {
+  static const String onboarding = '/onboarding';
   static const String home = '/';
   static const String calendar = '/calendar';
   static const String settings = '/settings';
@@ -13,8 +16,32 @@ class Routes {
 
 // 라우터 설정
 final GoRouter appRouter = GoRouter(
-  initialLocation: Routes.home,
+  initialLocation: Routes.onboarding,
+  redirect: (context, state) async {
+    // 온보딩 완료 여부 확인
+    final isOnboardingCompleted =
+        await OnboardingService.isOnboardingCompleted();
+
+    // 온보딩 화면이 아닌데 온보딩이 완료되지 않은 경우
+    if (!isOnboardingCompleted && state.uri.path != Routes.onboarding) {
+      return Routes.onboarding;
+    }
+
+    // 온보딩이 완료된 상태에서 온보딩 화면으로 가려는 경우
+    if (isOnboardingCompleted && state.uri.path == Routes.onboarding) {
+      return Routes.home;
+    }
+
+    return null; // 리다이렉트 없음
+  },
   routes: [
+    // 온보딩 화면 (독립적인 라우트)
+    GoRoute(
+      path: Routes.onboarding,
+      name: 'onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
+
     // 메인 쉘 라우트 (하단 네비게이션바 포함)
     ShellRoute(
       builder: (context, state, child) {

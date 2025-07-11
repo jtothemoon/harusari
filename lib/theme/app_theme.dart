@@ -423,9 +423,10 @@ class AppTheme {
   ];
 
   /// 카드 그림자 스타일 (정적 - 호환성 유지)
+  /// @deprecated 대신 getCardShadow(context) 사용 권장
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: AppColors.shadow,
+      color: AppColors.lightShadow, // 기본적으로 라이트 테마 그림자 사용
       offset: const Offset(0, 2),
       blurRadius: 8,
       spreadRadius: 0,

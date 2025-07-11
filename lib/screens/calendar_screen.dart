@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 import '../providers/todo_provider.dart';
 import '../models/todo.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/common_app_bar.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -52,16 +53,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '완료 기록',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.getTextPrimaryColor(context),
-          ),
-        ),
-        centerTitle: true,
-      ),
+      appBar: const CommonAppBar(title: '완료 기록'),
       body: Consumer<TodoProvider>(
         builder: (context, todoProvider, child) {
           return Column(

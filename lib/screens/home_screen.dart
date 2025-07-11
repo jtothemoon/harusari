@@ -9,8 +9,7 @@ import '../widgets/inline_add_todo.dart';
 import '../widgets/completion_snackbar.dart';
 import '../widgets/progress_indicator.dart';
 import '../widgets/empty_state.dart';
-import '../widgets/permission_dialog.dart';
-import '../services/notification_service.dart';
+import '../widgets/common_app_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,112 +27,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // 앱 시작 시 Provider 초기화 및 오늘의 할 일 로드
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      try {
-        final todoProvider = context.read<TodoProvider>();
-        await todoProvider.initialize();
-        await todoProvider.loadTodosForToday();
-
-        // 최초 실행 시 권한 요청 다이얼로그 표시
-        await _checkAndShowPermissionDialog();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('초기화 중 오류가 발생했습니다: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    });
-  }
-
-  // 최초 실행 시 권한 요청 다이얼로그 표시
-  Future<void> _checkAndShowPermissionDialog() async {
-    try {
-      final todoProvider = context.read<TodoProvider>();
-      final isFirstLaunch = await todoProvider.databaseService.getSetting(
-        'is_first_launch',
-      );
-
-      if (isFirstLaunch == null && mounted) {
-        // 최초 실행 - 사용자 친화적인 다이얼로그 표시
-        final shouldRequest = await PermissionDialog.show(context);
-
-        if (shouldRequest == true && mounted) {
-          // 사용자가 허용을 선택한 경우
-          final hasPermission = await NotificationService()
-              .requestPermissions();
-
-          if (hasPermission) {
-            // 권한 허용됨
-            await todoProvider.setNotificationEnabled(true);
-            await todoProvider.setVibrationEnabled(true);
-
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('🎉 알림 설정이 완료되었습니다!'),
-                  backgroundColor: AppColors.priorityLow,
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            }
-          } else {
-            // 권한 거부됨
-            await todoProvider.setNotificationEnabled(false);
-            await todoProvider.setVibrationEnabled(false);
-
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('알림 권한이 거부되었습니다. 설정에서 변경할 수 있습니다.'),
-                  backgroundColor: AppColors.priorityHigh,
-                  duration: Duration(seconds: 3),
-                ),
-              );
-            }
-          }
-        } else if (shouldRequest == false) {
-          // 사용자가 나중에를 선택한 경우
-          await todoProvider.setNotificationEnabled(false);
-          await todoProvider.setVibrationEnabled(false);
-        }
-
-        // 최초 실행 완료 표시
-        await todoProvider.databaseService.saveSetting(
-          'is_first_launch',
-          'false',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('권한 확인 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    // main.dart의 AppInitializer에서 이미 초기화 완료
+    // 추가 초기화 작업이 필요하면 여기서 처리
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '오늘의 할 일',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.getTextPrimaryColor(context),
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
+      appBar: const CommonAppBar(title: '오늘의 할 일'),
       body: Consumer<TodoProvider>(
         builder: (context, todoProvider, child) {
           // 완료 처리 시 스낵바 표시

@@ -208,7 +208,9 @@ class _InlineAddTodoState extends State<InlineAddTodo>
                       Icons.check_circle,
                       color: _controller.text.trim().isNotEmpty
                           ? _getPriorityColor(_selectedPriority)
-                          : AppColors.textSecondary.withValues(alpha: 0.3),
+                          : AppColors.getTextSecondaryColor(
+                              context,
+                            ).withValues(alpha: 0.3),
                       size: 28,
                     ),
                   ),

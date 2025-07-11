@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../providers/settings_provider.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../clients/discord_webhook.dart';
 import '../services/notification_service.dart';
 import '../services/onboarding_service.dart';
 import '../router.dart';
+import '../widgets/common_app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -34,8 +36,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadDayStartTime() async {
-    final todoProvider = context.read<TodoProvider>();
-    final startTime = todoProvider.getCurrentDayStartTime();
+    final settingsProvider = context.read<SettingsProvider>();
+    final startTime = settingsProvider.dayStartTime;
     setState(() {
       _dayStartTime = startTime;
     });
@@ -68,8 +70,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (!mounted) return;
 
+      final settingsProvider = context.read<SettingsProvider>();
       final todoProvider = context.read<TodoProvider>();
-      await todoProvider.setDayStartTime(picked);
+
+      // 설정 저장
+      await settingsProvider.setDayStartTime(picked);
+
+      // TodoProvider의 타이머도 업데이트
+      await todoProvider.updateDayTransitionTimer(context);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('설정')),
+      appBar: const CommonAppBar(title: '설정'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -146,8 +154,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           // 알림 설정
-          Consumer<TodoProvider>(
-            builder: (context, todoProvider, child) {
+          Consumer<SettingsProvider>(
+            builder: (context, settingsProvider, child) {
               return Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -187,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           Switch(
-                            value: todoProvider.isNotificationEnabled,
+                            value: settingsProvider.isNotificationEnabled,
                             onChanged: (value) async {
                               if (value) {
                                 // BuildContext를 미리 캐시해서 async gap 문제 해결
@@ -199,23 +207,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 final hasPermission =
                                     await NotificationService()
                                         .requestPermissions();
-                                if (!hasPermission) {
-                                  if (mounted) {
-                                    scaffoldMessenger.showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          '알림 권한이 필요합니다. 설정에서 권한을 허용해주세요.',
-                                        ),
-                                        backgroundColor: AppColors.priorityHigh,
+
+                                if (hasPermission) {
+                                  await settingsProvider.setNotificationEnabled(
+                                    true,
+                                  );
+                                  scaffoldMessenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        '알림이 활성화되었습니다',
+                                        style: TextStyle(color: Colors.white),
                                       ),
-                                    );
-                                  }
-                                  return;
+                                      backgroundColor: AppColors.priorityLow,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                } else {
+                                  scaffoldMessenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        '알림 권한이 필요합니다',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      backgroundColor: AppColors.priorityHigh,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                await settingsProvider.setNotificationEnabled(
+                                  false,
+                                );
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        '알림이 비활성화되었습니다',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      backgroundColor: AppColors.priorityMedium,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
                                 }
                               }
-                              await todoProvider.setNotificationEnabled(value);
                             },
-                            activeColor: AppColors.priorityLow,
                           ),
                         ],
                       ),
@@ -241,22 +277,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '알림과 함께 진동을 울립니다',
+                                  '알림 시 진동을 사용합니다',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
                             ),
                           ),
                           Switch(
-                            value: todoProvider.isVibrationEnabled,
-                            onChanged: todoProvider.isNotificationEnabled
-                                ? (value) async {
-                                    await todoProvider.setVibrationEnabled(
-                                      value,
-                                    );
-                                  }
-                                : null,
-                            activeColor: AppColors.priorityLow,
+                            value: settingsProvider.isVibrationEnabled,
+                            onChanged: (value) async {
+                              await settingsProvider.setVibrationEnabled(value);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      value ? '진동이 활성화되었습니다' : '진동이 비활성화되었습니다',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    backgroundColor: AppColors.priorityLow,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -318,7 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           Icon(
                             Icons.chevron_right,
-                            color: AppColors.textSecondary,
+                            color: AppColors.getTextSecondaryColor(context),
                             size: 20,
                           ),
                         ],
@@ -381,7 +426,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           Icon(
                             Icons.chevron_right,
-                            color: AppColors.textSecondary,
+                            color: AppColors.getTextSecondaryColor(context),
                             size: 20,
                           ),
                         ],

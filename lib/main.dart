@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'providers/todo_provider.dart';
+import 'providers/settings_provider.dart';
 import 'services/notification_service.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
@@ -71,8 +73,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => TodoProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => TodoProvider()),
+        ChangeNotifierProvider(create: (context) => SettingsProvider()),
+      ],
       child: MaterialApp.router(
         title: '하루살이',
         debugShowCheckedModeBanner: false,
@@ -104,7 +109,7 @@ class AppInitializer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Provider.of<TodoProvider>(context, listen: false).initialize(),
+      future: _initializeProviders(context),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -116,5 +121,24 @@ class AppInitializer extends StatelessWidget {
         return child;
       },
     );
+  }
+
+  /// 모든 Provider들을 초기화
+  Future<void> _initializeProviders(BuildContext context) async {
+    try {
+      // 1. SettingsProvider 초기화 (설정 먼저 로드)
+      await context.read<SettingsProvider>().initialize();
+
+      // 2. TodoProvider 초기화 (할 일 관리)
+      await context.read<TodoProvider>().initialize(context);
+
+      if (kDebugMode) {
+        print('모든 Provider 초기화 완료');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Provider 초기화 중 오류: $e');
+      }
+    }
   }
 }

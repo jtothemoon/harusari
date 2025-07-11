@@ -149,32 +149,6 @@ class AppColors {
         : lightShadow;
   }
 
-  // === 기존 호환성 유지를 위한 정적 색상 (deprecated) ===
-
-  /// @deprecated 대신 getBackgroundColor(context) 사용
-  static const Color background = lightBackground;
-
-  /// @deprecated 대신 getCardBackgroundColor(context) 사용
-  static const Color cardBackground = lightCardBackground;
-
-  /// @deprecated 대신 getSurfaceColor(context) 사용
-  static const Color surface = lightSurface;
-
-  /// @deprecated 대신 getTextPrimaryColor(context) 사용
-  static const Color textPrimary = lightTextPrimary;
-
-  /// @deprecated 대신 getTextSecondaryColor(context) 사용
-  static const Color textSecondary = lightTextSecondary;
-
-  /// @deprecated 대신 getTextDisabledColor(context) 사용
-  static const Color textDisabled = lightTextDisabled;
-
-  /// @deprecated 대신 getDividerColor(context) 사용
-  static const Color divider = lightDivider;
-
-  /// @deprecated 대신 getShadowColor(context) 사용
-  static const Color shadow = lightShadow;
-
   // === 유틸리티 메서드 ===
 
   /// 우선순위에 따른 색상 반환

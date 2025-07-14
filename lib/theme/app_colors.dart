@@ -99,6 +99,17 @@ class AppColors {
   /// 우선순위 낮음 배경색 (시그니처 초록색의 매우 연한 버전)
   static const Color priorityLowBackground = Color(0xFFE6FFFA);
 
+  // === 다크 테마용 우선순위 배경 색상 ===
+
+  /// 우선순위 높음 배경색 (다크) - 빨간색의 어두운 버전
+  static const Color priorityHighBackgroundDark = Color(0xFF4A1E1E);
+
+  /// 우선순위 중간 배경색 (다크) - 주황색의 어두운 버전
+  static const Color priorityMediumBackgroundDark = Color(0xFF4A2E1E);
+
+  /// 우선순위 낮음 배경색 (다크) - 초록색의 어두운 버전
+  static const Color priorityLowBackgroundDark = Color(0xFF1E4A37);
+
   // === 동적 색상 선택 메서드 ===
 
   /// 현재 테마에 따른 배경색 반환
@@ -153,8 +164,29 @@ class AppColors {
   /// 현재 테마에 따른 그림자 색상 반환
   static Color getShadowColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
-        ? darkShadow
+        ? Color(0x08000000) // 다크테마에서 매우 연한 그림자 (투명도 3%)
         : lightShadow;
+  }
+
+  // === 우선순위 배경색 메서드 추가 ===
+
+  /// 현재 테마에 따른 우선순위 배경색 반환
+  static Color getPriorityBackgroundColor(
+    BuildContext context,
+    String priority,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return isDark ? priorityHighBackgroundDark : priorityHighBackground;
+      case 'medium':
+        return isDark ? priorityMediumBackgroundDark : priorityMediumBackground;
+      case 'low':
+        return isDark ? priorityLowBackgroundDark : priorityLowBackground;
+      default:
+        return isDark ? priorityLowBackgroundDark : priorityLowBackground;
+    }
   }
 
   // === 유틸리티 메서드 ===

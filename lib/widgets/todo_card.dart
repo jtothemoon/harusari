@@ -254,6 +254,9 @@ class _TodoCardState extends State<TodoCard> {
             border: Border.all(
               color: widget.todo.isCompleted
                   ? AppColors.success
+                  : Theme.of(context).brightness == Brightness.dark
+                  ? AppColors
+                        .darkTextSecondary // 다크테마에서 더 밝은 색상
                   : AppColors.getDividerColor(context),
               width: 1.5,
             ),
@@ -384,14 +387,11 @@ class _TodoCardState extends State<TodoCard> {
   }
 
   Color _getPriorityBackgroundColor(Priority priority) {
-    switch (priority) {
-      case Priority.high:
-        return AppColors.priorityHighBackground;
-      case Priority.medium:
-        return AppColors.priorityMediumBackground;
-      case Priority.low:
-        return AppColors.priorityLowBackground;
-    }
+    // 테마에 따라 동적으로 배경색 결정
+    return AppColors.getPriorityBackgroundColor(
+      context,
+      priority.toString().split('.').last,
+    );
   }
 
   void _saveChanges() {

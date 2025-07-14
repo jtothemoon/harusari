@@ -331,7 +331,6 @@ class TodoProvider with ChangeNotifier {
       }
 
       // 1-3-5 법칙 검증 (오늘 날짜 기준 - 미완료 할 일만 체크)
-      final today = DateTime.now();
       final todayIncompleteTodos = await _databaseService
           .getIncompleteTodosForToday();
 

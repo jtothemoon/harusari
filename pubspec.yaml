@@ -55,7 +55,6 @@ dependencies:
   flutter_local_notifications: ^17.2.3
   
   # 온보딩 화면
-  introduction_screen: ^3.1.17
   shared_preferences: ^2.2.2
 
 dev_dependencies:

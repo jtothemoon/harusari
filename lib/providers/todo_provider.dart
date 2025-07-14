@@ -312,6 +312,61 @@ class TodoProvider with ChangeNotifier {
     }
   }
 
+  // 완료된 할 일을 미완료 상태로 되돌리기 (캘린더에서 사용)
+  Future<void> restoreCompletedTodo(int todoId) async {
+    try {
+      // 데이터베이스에서 해당 할 일 조회
+      final todo = await _databaseService.getTodoById(todoId);
+      if (todo == null) {
+        _error = '할 일을 찾을 수 없습니다';
+        notifyListeners();
+        return;
+      }
+
+      // 완료된 할 일이 아니면 처리하지 않음
+      if (!todo.isCompleted) {
+        _error = '이미 미완료 상태인 할 일입니다';
+        notifyListeners();
+        return;
+      }
+
+      // 1-3-5 법칙 검증 (오늘 날짜 기준 - 미완료 할 일만 체크)
+      final today = DateTime.now();
+      final todayIncompleteTodos = await _databaseService
+          .getIncompleteTodosForToday();
+
+      bool canRestore = TodoValidationUtils.canAddTodo(
+        todo.priority,
+        todayIncompleteTodos,
+      );
+      if (!canRestore) {
+        _error = TodoValidationUtils.getPriorityLimitMessage(todo.priority);
+        notifyListeners();
+        return;
+      }
+
+      // 할 일을 오늘 날짜로 복원하고 미완료 상태로 변경
+      final restoredTodo = todo.copyWith(
+        isCompleted: false,
+        completedAt: null,
+        createdAt: DateTime.now(), // 오늘 날짜로 변경
+      );
+
+      await _databaseService.updateTodo(restoredTodo);
+
+      // 오늘 할 일 목록에 추가
+      _todos.add(restoredTodo);
+      _sortTodos();
+      notifyListeners();
+
+      // 홈 화면에서 즉시 반영되도록 강제 새로고침
+      await forceLoadTodosForToday();
+    } catch (e) {
+      _error = '할 일을 되돌리는데 실패했습니다: $e';
+      notifyListeners();
+    }
+  }
+
   // ==========================================
   // 초기화 메서드들
   // ==========================================

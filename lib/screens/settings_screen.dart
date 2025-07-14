@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_colors.dart';
 import '../providers/settings_provider.dart';
 import '../providers/todo_provider.dart';
@@ -11,7 +12,6 @@ import '../clients/discord_webhook.dart';
 import '../services/notification_service.dart';
 import '../services/onboarding_service.dart';
 import '../router.dart';
-import '../widgets/common_app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -76,6 +76,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // 설정 저장
       await settingsProvider.setDayStartTime(picked);
 
+      if (!mounted) return;
+
       // TodoProvider의 타이머도 업데이트
       await todoProvider.updateDayTransitionTimer(context);
 
@@ -97,25 +99,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonAppBar(title: '설정'),
+      appBar: AppBar(
+        title: Text('설정', style: Theme.of(context).textTheme.titleLarge),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        actions: [
+          // 앱 버전 표시
+          FutureBuilder<PackageInfo>(
+            future: _loadPackageInfo(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    'v${snapshot.data!.version}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox();
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // 하루 시작 시간 설정
-          Card(
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.getCardBackgroundColor(context),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.getShadowColor(context),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '하루 시작 시간',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  Row(
+                    children: [
+                      Text(
+                        '하루 시작 시간',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '설정한 시간이 되면 이전 날의 미완료 할 일이 자동으로 삭제됩니다.',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.getTextSecondaryColor(context),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   InkWell(
@@ -127,8 +181,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.05),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -137,10 +192,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Text(
                             _formatTime(_dayStartTime),
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                           Icon(
-                            Icons.access_time,
+                            LucideIcons.clock,
                             color: AppColors.primary,
                             size: 20,
                           ),
@@ -156,22 +215,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // 알림 설정
           Consumer<SettingsProvider>(
             builder: (context, settingsProvider, child) {
-              return Card(
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppColors.getCardBackgroundColor(context),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.getShadowColor(context),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '알림 설정',
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Row(
+                        children: [
+                          Text(
+                            '알림 설정',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       // 푸시 알림 설정
                       Row(
                         children: [
                           Icon(
-                            Icons.notifications_outlined,
+                            LucideIcons.bell,
                             color: AppColors.primary,
                             size: 20,
                           ),
@@ -182,14 +257,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Text(
                                   '푸시 알림',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w500),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '하루 시작 시 알림을 받습니다',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: AppColors.getTextSecondaryColor(
+                                          context,
+                                        ),
+                                      ),
                                 ),
                               ],
                             ),
@@ -198,60 +277,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             value: settingsProvider.isNotificationEnabled,
                             onChanged: (value) async {
                               if (value) {
-                                // BuildContext를 미리 캐시해서 async gap 문제 해결
-                                final scaffoldMessenger = ScaffoldMessenger.of(
-                                  context,
-                                );
-
-                                // 알림 권한 요청
+                                // 알림 켜기 - 권한 요청
                                 final hasPermission =
                                     await NotificationService()
                                         .requestPermissions();
-
                                 if (hasPermission) {
                                   await settingsProvider.setNotificationEnabled(
                                     true,
                                   );
-                                  scaffoldMessenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        '알림이 활성화되었습니다',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      backgroundColor: AppColors.priorityLow,
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
                                 } else {
-                                  scaffoldMessenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        '알림 권한이 필요합니다',
-                                        style: TextStyle(color: Colors.white),
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          '알림 권한이 필요합니다. 설정에서 권한을 허용해주세요.',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        backgroundColor: AppColors.error,
+                                        duration: Duration(seconds: 3),
                                       ),
-                                      backgroundColor: AppColors.priorityHigh,
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 }
                               } else {
+                                // 알림 끄기
                                 await settingsProvider.setNotificationEnabled(
                                   false,
                                 );
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        '알림이 비활성화되었습니다',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      backgroundColor: AppColors.priorityMedium,
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                }
                               }
                             },
+                            activeColor: AppColors.primary,
                           ),
                         ],
                       ),
@@ -260,7 +315,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.vibration,
+                            LucideIcons.smartphone,
                             color: settingsProvider.isNotificationEnabled
                                 ? AppColors.primary
                                 : AppColors.getTextSecondaryColor(context),
@@ -273,12 +328,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Text(
                                   '진동',
-                                  style: Theme.of(context).textTheme.titleMedium
+                                  style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(
+                                        fontWeight: FontWeight.w500,
                                         color:
                                             settingsProvider
                                                 .isNotificationEnabled
-                                            ? null
+                                            ? AppColors.getTextPrimaryColor(
+                                                context,
+                                              )
                                             : AppColors.getTextSecondaryColor(
                                                 context,
                                               ),
@@ -286,9 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  settingsProvider.isNotificationEnabled
-                                      ? '알림 시 진동을 사용합니다'
-                                      : '알림이 꺼져있어 진동을 사용할 수 없습니다',
+                                  '알림과 함께 진동을 받습니다',
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: AppColors.getTextSecondaryColor(
@@ -306,27 +362,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     await settingsProvider.setVibrationEnabled(
                                       value,
                                     );
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            value
-                                                ? '진동이 활성화되었습니다'
-                                                : '진동이 비활성화되었습니다',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          backgroundColor:
-                                              AppColors.priorityLow,
-                                          duration: const Duration(seconds: 2),
-                                        ),
-                                      );
-                                    }
                                   }
-                                : null, // 알림이 꺼져있으면 null로 설정하여 비활성화
+                                : null,
+                            activeColor: AppColors.primary,
                           ),
                         ],
                       ),
@@ -338,13 +376,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           // 고객 문의/제안
-          Card(
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.getCardBackgroundColor(context),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.getShadowColor(context),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('고객 지원', style: Theme.of(context).textTheme.titleLarge),
+                  Row(
+                    children: [
+                      Text(
+                        '고객 지원',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   InkWell(
                     onTap: _showFeedbackDialog,
@@ -355,15 +412,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.05),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            Icons.mail_outline,
+                            LucideIcons.mail,
                             color: AppColors.primary,
                             size: 20,
                           ),
@@ -374,20 +432,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Text(
                                   '문의 및 제안',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w500),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '개선사항이나 문제점을 알려주세요',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: AppColors.getTextSecondaryColor(
+                                          context,
+                                        ),
+                                      ),
                                 ),
                               ],
                             ),
                           ),
                           Icon(
-                            Icons.chevron_right,
+                            LucideIcons.chevronRight,
                             color: AppColors.getTextSecondaryColor(context),
                             size: 20,
                           ),
@@ -401,13 +463,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           // 온보딩 다시 보기
-          Card(
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.getCardBackgroundColor(context),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.getShadowColor(context),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('앱 도움말', style: Theme.of(context).textTheme.titleLarge),
+                  Row(
+                    children: [
+                      Text(
+                        '앱 도움말',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   InkWell(
                     onTap: _showOnboardingAgain,
@@ -418,15 +499,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.05),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            Icons.help_outline,
+                            LucideIcons.helpCircle,
                             color: AppColors.primary,
                             size: 20,
                           ),
@@ -437,20 +519,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Text(
                                   '온보딩 다시 보기',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w500),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '앱 사용법을 다시 확인해보세요',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: AppColors.getTextSecondaryColor(
+                                          context,
+                                        ),
+                                      ),
                                 ),
                               ],
                             ),
                           ),
                           Icon(
-                            Icons.chevron_right,
+                            LucideIcons.chevronRight,
                             color: AppColors.getTextSecondaryColor(context),
                             size: 20,
                           ),
@@ -464,13 +550,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           // 앱 정보
-          Card(
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.getCardBackgroundColor(context),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.getShadowColor(context),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('앱 정보', style: Theme.of(context).textTheme.titleLarge),
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.info,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '앱 정보',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   FutureBuilder<PackageInfo>(
                     future: _loadPackageInfo(),

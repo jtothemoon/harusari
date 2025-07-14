@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_colors.dart';
 import '../providers/todo_provider.dart';
 import '../models/todo.dart';
@@ -9,7 +10,6 @@ import '../widgets/inline_add_todo.dart';
 import '../widgets/completion_snackbar.dart';
 import '../widgets/progress_indicator.dart';
 import '../widgets/empty_state.dart';
-import '../widgets/common_app_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,7 +34,30 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonAppBar(title: '오늘의 할 일'),
+      appBar: AppBar(
+        title: Text('오늘의 할 일', style: Theme.of(context).textTheme.titleLarge),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        actions: [
+          // 오늘 날짜 표시
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              _formatTodayDate(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Consumer<TodoProvider>(
         builder: (context, todoProvider, child) {
           // 완료 처리 시 스낵바 표시
@@ -57,11 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 60,
-                    height: 60,
+                    width: 32,
+                    height: 32,
                     child: CircularProgressIndicator(
-                      color: AppColors.priorityMedium,
-                      strokeWidth: 3,
+                      color: AppColors.primary,
+                      strokeWidth: 2,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -81,15 +104,15 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 60,
-                    color: AppColors.priorityHigh,
+                  Icon(
+                    Icons.error_outline_rounded,
+                    size: 48,
+                    color: AppColors.error,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     '오류가 발생했습니다',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -99,13 +122,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: AppColors.getTextSecondaryColor(context),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
                     onPressed: () {
                       todoProvider.clearError();
                       todoProvider.loadTodosForToday();
                     },
-                    child: const Text('다시 시도'),
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('다시 시도'),
                   ),
                 ],
               ),
@@ -135,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               _getPriorityLimitMessage(priority),
                               style: const TextStyle(color: Colors.white),
                             ),
-                            backgroundColor: AppColors.priorityHigh,
+                            backgroundColor: AppColors.error,
                             duration: const Duration(seconds: 2),
                           ),
                         );
@@ -147,13 +171,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
+                        SnackBar(
+                          content: const Text(
                             '할 일이 추가되었습니다!',
                             style: TextStyle(color: Colors.white),
                           ),
-                          backgroundColor: AppColors.priorityLow,
-                          duration: Duration(seconds: 1),
+                          backgroundColor: AppColors.success,
+                          duration: const Duration(seconds: 1),
                         ),
                       );
                     }
@@ -219,81 +243,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                         }
                                       },
                                       onUpdate:
-                                          (title, priority, callback) async {
+                                          (
+                                            newTitle,
+                                            newPriority,
+                                            callback,
+                                          ) async {
                                             await todoProvider.updateTodo(
                                               todo.id!,
-                                              title,
-                                              priority,
+                                              newTitle,
+                                              newPriority,
                                             );
-                                            if (todoProvider.error != null) {
-                                              if (context.mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      todoProvider.error!,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                    backgroundColor:
-                                                        AppColors.priorityHigh,
-                                                    duration: const Duration(
-                                                      seconds: 2,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                              todoProvider.clearError();
-                                              callback(false); // 실패
-                                              return;
-                                            }
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    '할 일이 수정되었습니다!',
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                  backgroundColor:
-                                                      AppColors.priorityMedium,
-                                                  duration: Duration(
-                                                    seconds: 1,
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                            callback(true); // 성공
-                                            // 편집 완료 후 상태 초기화
-                                            setState(() {
-                                              _editingTodoId = null;
-                                            });
+                                            callback(true);
                                           },
-                                      onDelete: () async {
-                                        await todoProvider.deleteTodo(todo.id!);
-
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                '할 일이 삭제되었습니다',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              backgroundColor:
-                                                  AppColors.priorityHigh,
-                                              duration: Duration(seconds: 2),
-                                            ),
-                                          );
-                                        }
+                                      onDelete: () {
+                                        todoProvider.deleteTodo(todo.id!);
                                       },
                                     ),
                                   ),
@@ -314,20 +277,48 @@ class _HomeScreenState extends State<HomeScreen> {
             scale: _isAddingTodo || todoProvider.todos.isEmpty ? 0.0 : 1.0,
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
-            child: FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _isAddingTodo = true;
-                  _editingTodoId = null; // 새로운 할 일 추가 시 편집 상태 초기화
-                });
-              },
-              backgroundColor: AppColors.priorityMedium,
-              child: const Icon(Icons.add, color: Colors.white),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  setState(() {
+                    _isAddingTodo = true;
+                    _editingTodoId = null; // 새로운 할 일 추가 시 편집 상태 초기화
+                  });
+                },
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                icon: const Icon(LucideIcons.plus, size: 20),
+                label: Text(
+                  '할 일 추가',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ),
           );
         },
       ),
     );
+  }
+
+  String _formatTodayDate() {
+    final now = DateTime.now();
+    final weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+    final weekday = weekdays[now.weekday - 1];
+    return '${now.month}월 ${now.day}일 $weekday';
   }
 
   void _showCompletionSnackBar(

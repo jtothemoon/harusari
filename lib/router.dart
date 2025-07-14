@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/onboarding_service.dart';
+import 'theme/app_colors.dart';
 
 // 라우트 이름 상수
 class Routes {
@@ -117,18 +119,97 @@ class _MainShellState extends State<MainShell> {
 
     return Scaffold(
       body: widget.child,
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: '오늘'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: '달력',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.getCardBackgroundColor(context),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.getShadowColor(context),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  icon: LucideIcons.sparkles,
+                  label: '오늘',
+                  index: 0,
+                  isSelected: _selectedIndex == 0,
+                  onTap: () => _onItemTapped(0),
+                ),
+                _buildNavItem(
+                  icon: LucideIcons.calendar,
+                  label: '달력',
+                  index: 1,
+                  isSelected: _selectedIndex == 1,
+                  onTap: () => _onItemTapped(1),
+                ),
+                _buildNavItem(
+                  icon: LucideIcons.settings,
+                  label: '설정',
+                  index: 2,
+                  isSelected: _selectedIndex == 2,
+                  onTap: () => _onItemTapped(2),
+                ),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '설정'),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedScale(
+              scale: isSelected ? 1.1 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                icon,
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.getTextSecondaryColor(context),
+                size: 20,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.getTextSecondaryColor(context),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

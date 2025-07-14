@@ -110,6 +110,21 @@ class DatabaseService {
     return List.generate(maps.length, (i) => Todo.fromMap(maps[i]));
   }
 
+  // 특정 ID로 할 일 조회
+  Future<Todo?> getTodoById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'todos',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isNotEmpty) {
+      return Todo.fromMap(maps.first);
+    }
+    return null;
+  }
+
   // 할 일 업데이트
   Future<int> updateTodo(Todo todo) async {
     final db = await database;

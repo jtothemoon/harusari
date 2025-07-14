@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_colors.dart';
 
 class EmptyState extends StatefulWidget {
@@ -82,13 +83,24 @@ class _EmptyStateState extends State<EmptyState>
                     width: widget.isCompact ? 80 : 120,
                     height: widget.isCompact ? 80 : 120,
                     decoration: BoxDecoration(
-                      color: AppColors.priorityHigh.withValues(alpha: 0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        width: 2,
+                      ),
                     ),
-                    child: Icon(
-                      widget.icon,
-                      size: widget.isCompact ? 40 : 60,
-                      color: AppColors.priorityHigh.withValues(alpha: 0.6),
+                    child: Container(
+                      margin: EdgeInsets.all(widget.isCompact ? 12 : 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        widget.icon,
+                        size: widget.isCompact ? 32 : 48,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -100,41 +112,53 @@ class _EmptyStateState extends State<EmptyState>
                     children: [
                       Text(
                         widget.title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.getTextPrimaryColor(context),
-                              fontSize: widget.isCompact ? 16 : null,
-                            ),
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.getTextPrimaryColor(context),
+                          fontSize: widget.isCompact ? 16 : 20,
+                          letterSpacing: -0.3,
+                        ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: widget.isCompact ? 4 : 8),
+                      SizedBox(height: widget.isCompact ? 8 : 12),
                       Text(
                         widget.subtitle,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w400,
                           color: AppColors.getTextSecondaryColor(context),
                           height: 1.5,
-                          fontSize: widget.isCompact ? 12 : null,
+                          fontSize: widget.isCompact ? 14 : 16,
+                          letterSpacing: -0.1,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       if (widget.onActionPressed != null &&
                           widget.actionText != null) ...[
-                        SizedBox(height: widget.isCompact ? 16 : 24),
+                        SizedBox(height: widget.isCompact ? 20 : 28),
                         ElevatedButton.icon(
                           onPressed: widget.onActionPressed,
-                          icon: const Icon(Icons.add),
-                          label: Text(widget.actionText!),
+                          icon: const Icon(LucideIcons.plus, size: 18),
+                          label: Text(
+                            widget.actionText!,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              fontSize: widget.isCompact ? 14 : 16,
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.priorityHigh,
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(
-                              horizontal: widget.isCompact ? 16 : 24,
-                              vertical: widget.isCompact ? 8 : 12,
+                              horizontal: widget.isCompact ? 20 : 28,
+                              vertical: widget.isCompact ? 12 : 16,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            elevation: 0,
                           ),
                         ),
                       ],
@@ -154,7 +178,7 @@ class _EmptyStateState extends State<EmptyState>
 class EmptyStates {
   static Widget noTodos({VoidCallback? onAddPressed}) {
     return EmptyState(
-      icon: Icons.check_circle_outline,
+      icon: LucideIcons.clipboardList,
       title: '할 일이 없어요',
       subtitle: '오늘은 어떤 목표를 세워볼까요?\n1-3-5 법칙으로 부담 없이 시작해보세요!',
       actionText: '첫 할 일 추가하기',
@@ -164,7 +188,7 @@ class EmptyStates {
 
   static Widget allCompleted() {
     return const EmptyState(
-      icon: Icons.celebration,
+      icon: LucideIcons.partyPopper,
       title: '모든 할 일 완료! 🎉',
       subtitle: '오늘도 정말 수고하셨어요!\n내일은 또 다른 목표로 함께해요.',
     );
@@ -172,7 +196,7 @@ class EmptyStates {
 
   static Widget noCompletedTodos() {
     return const EmptyState(
-      icon: Icons.calendar_today,
+      icon: LucideIcons.calendar,
       title: '완료된 할 일이 없어요',
       subtitle: '이 날짜에는 완료된 할 일이 없습니다.\n다른 날짜를 선택해보세요.',
       isCompact: true,

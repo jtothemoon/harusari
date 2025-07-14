@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../models/todo.dart';
+import '../providers/todo_provider.dart';
 import '../theme/app_colors.dart';
 
 class TodoCard extends StatefulWidget {
@@ -26,76 +29,33 @@ class TodoCard extends StatefulWidget {
   State<TodoCard> createState() => _TodoCardState();
 }
 
-class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
+class _TodoCardState extends State<TodoCard> {
   late TextEditingController _textController;
   late Priority _currentPriority;
-  late AnimationController _scaleController;
-  late AnimationController _checkController;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _checkAnimation;
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController(text: widget.todo.title);
     _currentPriority = widget.todo.priority;
-
-    // 애니메이션 컨트롤러 초기화
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _checkController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
-    );
-
-    _checkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _checkController, curve: Curves.elasticOut),
-    );
   }
 
   @override
   void dispose() {
     _textController.dispose();
-    _scaleController.dispose();
-    _checkController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.isEditing) {
-      // 편집 모드일 때는 Dismissible 없이 Card만 반환
-      return Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // 우선순위 색상 띠
-              Container(
-                width: 4,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: _getPriorityColor(_currentPriority),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: _buildEditMode()),
-              const SizedBox(width: 16),
-              _buildEditButtons(),
-            ],
-          ),
-        ),
-      );
+      return _buildEditingCard();
     }
-    // 평상시에는 Dismissible + GestureDetector로 클릭/스와이프 모두 동작
+
+    return _buildNormalCard();
+  }
+
+  Widget _buildNormalCard() {
     return Dismissible(
       key: Key('todo_${widget.todo.id ?? UniqueKey()}'),
       direction: DismissDirection.endToStart,
@@ -105,93 +65,84 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
       onDismissed: (direction) {
         widget.onDelete?.call();
       },
-      background: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+      background: _buildSwipeBackground(),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: AppColors.priorityHigh,
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.getCardBackgroundColor(context),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: AppColors.getDividerColor(context),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.getShadowColor(context),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
         ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white, size: 24),
-      ),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: _getPriorityColor(widget.todo.priority),
+                  width: 3,
+                ),
+              ),
+            ),
             child: Row(
               children: [
-                // 우선순위 색상 띠
-                Container(
-                  width: 4,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _getPriorityColor(_currentPriority),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 16),
+                // 편집 가능한 영역 (우선순위 아이콘 + 제목)
                 Expanded(
-                  child: Text(
-                    widget.todo.title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.getTextPrimaryColor(context),
+                  child: GestureDetector(
+                    onTap: widget.onTap,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // 우선순위 아이콘
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: _getPriorityBackgroundColor(
+                                widget.todo.priority,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Icon(
+                              _getPriorityIcon(widget.todo.priority),
+                              size: 12,
+                              color: _getPriorityColor(widget.todo.priority),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // 할 일 제목
+                          Expanded(
+                            child: Text(
+                              widget.todo.title,
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.getTextPrimaryColor(context),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                AnimatedBuilder(
-                  animation: _scaleAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: GestureDetector(
-                        onTapDown: (_) {
-                          _scaleController.forward();
-                        },
-                        onTapUp: (_) {
-                          _scaleController.reverse();
-                          _checkController.forward().then((_) {
-                            widget.onCheckboxChanged?.call(true);
-                          });
-                        },
-                        onTapCancel: () {
-                          _scaleController.reverse();
-                        },
-                        child: AnimatedBuilder(
-                          animation: _checkAnimation,
-                          builder: (context, child) {
-                            return Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: _checkAnimation.value > 0.5
-                                    ? AppColors.priorityHigh
-                                    : Colors.transparent,
-                                border: Border.all(
-                                  color: AppColors.priorityHigh,
-                                  width: 2,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: _checkAnimation.value > 0.5
-                                  ? Icon(
-                                      Icons.check,
-                                      size: 16,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                            );
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ),
+
+                // 체크박스 영역 (더 큰 터치 영역)
+                _buildNotionCheckbox(),
               ],
             ),
           ),
@@ -200,39 +151,130 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildEditMode() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _textController,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: AppColors.getTextPrimaryColor(context),
+  Widget _buildEditingCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.getCardBackgroundColor(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.primary, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.zero,
-          ),
-          autofocus: true,
-          onSubmitted: (value) => _saveChanges(),
-        ),
-        const SizedBox(height: 8),
-        // 우선순위 선택 버튼들
-        Row(
-          children: [
-            _buildPriorityButton(Priority.high, '중요', AppColors.priorityHigh),
-            const SizedBox(width: 8),
-            _buildPriorityButton(
-              Priority.medium,
-              '보통',
-              AppColors.priorityMedium,
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                color: _getPriorityColor(_currentPriority),
+                width: 3,
+              ),
             ),
-            const SizedBox(width: 8),
-            _buildPriorityButton(Priority.low, '낮음', AppColors.priorityLow),
-          ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // 우선순위 아이콘
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: _getPriorityBackgroundColor(_currentPriority),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(
+                        _getPriorityIcon(_currentPriority),
+                        size: 12,
+                        color: _getPriorityColor(_currentPriority),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // 텍스트 입력 필드
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.getTextPrimaryColor(context),
+                          height: 1.4,
+                        ),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        autofocus: true,
+                        onSubmitted: (value) => _saveChanges(),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // 편집 버튼들
+                    _buildEditButtons(),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // 우선순위 선택 버튼들
+                _buildPrioritySelector(),
+              ],
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildNotionCheckbox() {
+    return GestureDetector(
+      onTap: () => _toggleComplete(),
+      child: Container(
+        padding: const EdgeInsets.all(16), // 더 큰 터치 영역
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: widget.todo.isCompleted
+                ? AppColors.success
+                : Colors.transparent,
+            border: Border.all(
+              color: widget.todo.isCompleted
+                  ? AppColors.success
+                  : AppColors.getDividerColor(context),
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: widget.todo.isCompleted
+              ? const Icon(LucideIcons.check, color: Colors.white, size: 14)
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrioritySelector() {
+    return Row(
+      children: [
+        _buildPriorityButton(Priority.high, '중요', AppColors.priorityHigh),
+        const SizedBox(width: 8),
+        _buildPriorityButton(Priority.medium, '보통', AppColors.priorityMedium),
+        const SizedBox(width: 8),
+        _buildPriorityButton(Priority.low, '낮음', AppColors.priorityLow),
       ],
     );
   }
@@ -246,21 +288,39 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : Colors.transparent,
-          border: Border.all(color: color, width: 1),
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? color : AppColors.getDividerColor(context),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            color: isSelected ? Colors.white : color,
-            fontWeight: FontWeight.w500,
+            fontSize: 13,
+            color: isSelected
+                ? color
+                : AppColors.getTextSecondaryColor(context),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSwipeBackground() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.error,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 20),
+      child: const Icon(LucideIcons.trash2, color: Colors.white, size: 20),
     );
   }
 
@@ -269,26 +329,69 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
       mainAxisSize: MainAxisSize.min,
       children: [
         // 저장 버튼
-        IconButton(
-          onPressed: _saveChanges,
-          icon: const Icon(Icons.check, color: AppColors.priorityLow, size: 20),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
+        GestureDetector(
+          onTap: _saveChanges,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Icon(
+              LucideIcons.check,
+              color: AppColors.success,
+              size: 16,
+            ),
+          ),
         ),
         const SizedBox(width: 8),
         // 취소 버튼
-        IconButton(
-          onPressed: _cancelEdit,
-          icon: const Icon(
-            Icons.close,
-            color: AppColors.priorityHigh,
-            size: 20,
+        GestureDetector(
+          onTap: _cancelEdit,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Icon(LucideIcons.x, color: AppColors.error, size: 16),
           ),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
         ),
       ],
     );
+  }
+
+  IconData _getPriorityIcon(Priority priority) {
+    switch (priority) {
+      case Priority.high:
+        return Icons.circle; // ● 진한 빨간색 - 꽉 찬 동그라미
+      case Priority.medium:
+        return Icons.circle; // ● 연한 주황색 - 꽉 찬 동그라미
+      case Priority.low:
+        return Icons.radio_button_unchecked; // ○ 초록색 - 빈 동그라미
+    }
+  }
+
+  Color _getPriorityColor(Priority priority) {
+    switch (priority) {
+      case Priority.high:
+        return AppColors.priorityHigh;
+      case Priority.medium:
+        return AppColors.priorityMedium;
+      case Priority.low:
+        return AppColors.priorityLow;
+    }
+  }
+
+  Color _getPriorityBackgroundColor(Priority priority) {
+    switch (priority) {
+      case Priority.high:
+        return AppColors.priorityHighBackground;
+      case Priority.medium:
+        return AppColors.priorityMediumBackground;
+      case Priority.low:
+        return AppColors.priorityLowBackground;
+    }
   }
 
   void _saveChanges() {
@@ -308,6 +411,18 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
     _textController.text = widget.todo.title;
     _currentPriority = widget.todo.priority;
     widget.onEditingCancelled?.call();
+  }
+
+  void _toggleComplete() {
+    if (widget.todo.isCompleted) {
+      // 이미 완료된 할 일은 되돌리기 불가
+      return;
+    }
+
+    // 완료 처리
+    final todoProvider = Provider.of<TodoProvider>(context, listen: false);
+    todoProvider.completeTodo(widget.todo.id!);
+    widget.onCheckboxChanged?.call(true);
   }
 
   Future<bool> _showDeleteConfirmDialog() async {
@@ -332,16 +447,5 @@ class _TodoCardState extends State<TodoCard> with TickerProviderStateMixin {
           ),
         ) ??
         false;
-  }
-
-  Color _getPriorityColor(Priority priority) {
-    switch (priority) {
-      case Priority.high:
-        return AppColors.priorityHigh;
-      case Priority.medium:
-        return AppColors.priorityMedium;
-      case Priority.low:
-        return AppColors.priorityLow;
-    }
   }
 }

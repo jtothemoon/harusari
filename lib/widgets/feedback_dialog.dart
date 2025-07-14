@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_colors.dart';
 
 class FeedbackDialog extends StatefulWidget {
@@ -37,6 +38,20 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
     }
   }
 
+  // 카테고리별 placeholder 텍스트 가져오기
+  String _getPlaceholderText() {
+    switch (_category) {
+      case '기능 제안':
+        return '예시) 공지사항이나 알림 같은게 있으면 좋겠어요요.';
+      case '버그 신고':
+        return '예시) 특정 상황시 앱이 멈춥니다.';
+      case '기타 문의':
+        return '예시) 앱 사용 방법이 궁금해요.';
+      default:
+        return '문의 내용을 자세히 적어주세요.';
+    }
+  }
+
   // 컨텐츠 가져오기
   Widget _buildContent() {
     switch (_currentStep) {
@@ -55,52 +70,85 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(
-            Icons.lightbulb_outline,
-            color: AppColors.priorityMedium,
-          ),
-          title: const Text('기능 제안'),
-          subtitle: const Text('원하는 기능을 말씀해주세요.'),
-          onTap: () {
-            setState(() {
-              _category = '기능 제안';
-              _currentStep++;
-            });
-          },
+        _buildCategoryTile(
+          icon: LucideIcons.lightbulb,
+          iconColor: AppColors.priorityMedium,
+          title: '기능 제안',
+          subtitle: '원하는 기능을 말씀해주세요.',
+          category: '기능 제안',
         ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(
-            Icons.bug_report_outlined,
-            color: AppColors.priorityHigh,
-          ),
-          title: const Text('버그 신고'),
-          subtitle: const Text('불편한 점을 말씀해주세요.'),
-          onTap: () {
-            setState(() {
-              _category = '버그 신고';
-              _currentStep++;
-            });
-          },
+        const SizedBox(height: 8),
+        _buildCategoryTile(
+          icon: LucideIcons.bug,
+          iconColor: AppColors.priorityHigh,
+          title: '버그 신고',
+          subtitle: '불편한 점을 말씀해주세요.',
+          category: '버그 신고',
         ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(
-            Icons.question_mark_outlined,
-            color: AppColors.priorityLow,
-          ),
-          title: const Text('기타 문의'),
-          subtitle: const Text('궁금한 점을 말씀해주세요.'),
-          onTap: () {
-            setState(() {
-              _category = '기타 문의';
-              _currentStep++;
-            });
-          },
+        const SizedBox(height: 8),
+        _buildCategoryTile(
+          icon: LucideIcons.helpCircle,
+          iconColor: AppColors.priorityLow,
+          title: '기타 문의',
+          subtitle: '궁금한 점을 말씀해주세요.',
+          category: '기타 문의',
         ),
       ],
+    );
+  }
+
+  Widget _buildCategoryTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String category,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.getCardBackgroundColor(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.getTextSecondaryColor(
+            context,
+          ).withValues(alpha: 0.1),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: AppColors.getTextPrimaryColor(context),
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 14,
+            color: AppColors.getTextSecondaryColor(context),
+          ),
+        ),
+        onTap: () {
+          setState(() {
+            _category = category;
+            _currentStep++;
+          });
+        },
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
@@ -114,12 +162,40 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
           maxLength: 300,
           maxLines: 4,
           keyboardType: TextInputType.multiline,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 14,
+            color: AppColors.getTextPrimaryColor(context),
+          ),
           decoration: InputDecoration(
-            hintText: '예시) 할 일 완료 시 알림음이 들렸으면 좋겠어요.',
+            hintText: _getPlaceholderText(),
             hintStyle: TextStyle(
+              fontFamily: 'Inter',
               color: AppColors.getTextSecondaryColor(context),
             ),
             errorText: _messageError,
+            filled: true,
+            fillColor: AppColors.getCardBackgroundColor(context),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.getTextSecondaryColor(
+                  context,
+                ).withValues(alpha: 0.2),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.getTextSecondaryColor(
+                  context,
+                ).withValues(alpha: 0.2),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.priorityMedium, width: 2),
+            ),
           ),
         ),
       ],
@@ -135,20 +211,65 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
           autofocus: true,
           maxLength: 100,
           keyboardType: TextInputType.emailAddress,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 14,
+            color: AppColors.getTextPrimaryColor(context),
+          ),
           decoration: InputDecoration(
             hintText: 'example@email.com',
             hintStyle: TextStyle(
+              fontFamily: 'Inter',
               color: AppColors.getTextSecondaryColor(context),
             ),
             errorText: _emailError,
+            filled: true,
+            fillColor: AppColors.getCardBackgroundColor(context),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.getTextSecondaryColor(
+                  context,
+                ).withValues(alpha: 0.2),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.getTextSecondaryColor(
+                  context,
+                ).withValues(alpha: 0.2),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.priorityMedium, width: 2),
+            ),
           ),
         ),
         const SizedBox(height: 16),
-        Text(
-          '답변을 받으시려면 이메일 주소를 입력해주세요. 이메일 주소는 답변 용도 외에 사용되지 않습니다.',
-          style: TextStyle(
-            color: AppColors.getTextSecondaryColor(context),
-            fontSize: 12,
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.priorityLow.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(LucideIcons.info, size: 16, color: AppColors.priorityLow),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '답변을 받으시려면 이메일 주소를 입력해주세요. 이메일 주소는 답변 용도 외에 사용되지 않습니다.',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    color: AppColors.getTextSecondaryColor(context),
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -173,7 +294,15 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
     return [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('닫기'),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.getTextSecondaryColor(context),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: Text(
+          '닫기',
+          style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w500),
+        ),
       ),
     ];
   }
@@ -184,9 +313,18 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
         onPressed: () => setState(() {
           _currentStep--;
         }),
-        child: const Text('이전'),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.getTextSecondaryColor(context),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: Text(
+          '이전',
+          style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w500),
+        ),
       ),
-      TextButton(
+      const SizedBox(width: 8),
+      ElevatedButton(
         onPressed: () {
           final message = _messageController.text.trim();
           if (message.length < 5) {
@@ -200,7 +338,17 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
             _currentStep++;
           });
         },
-        child: const Text('다음'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.priorityMedium,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
+        ),
+        child: Text(
+          '다음',
+          style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w600),
+        ),
       ),
     ];
   }
@@ -211,9 +359,18 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
         onPressed: () => setState(() {
           _currentStep--;
         }),
-        child: const Text('이전'),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.getTextSecondaryColor(context),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: Text(
+          '이전',
+          style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w500),
+        ),
       ),
-      TextButton(
+      const SizedBox(width: 8),
+      ElevatedButton(
         onPressed: () {
           final email = _emailController.text.trim();
           if (email.isNotEmpty && !email.contains('@')) {
@@ -228,7 +385,17 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
             'email': _emailController.text.trim(),
           });
         },
-        child: const Text('제출'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.priorityLow,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
+        ),
+        child: Text(
+          '제출',
+          style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w600),
+        ),
       ),
     ];
   }
@@ -236,13 +403,18 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.getCardBackgroundColor(context),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: AppColors.getBackgroundColor(context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.all(24),
+      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       title: Text(
         _getTitle(),
         style: TextStyle(
+          fontFamily: 'Inter',
           color: AppColors.getTextPrimaryColor(context),
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
         ),
       ),
       content: _buildContent(),

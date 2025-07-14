@@ -134,8 +134,10 @@ class AppInitializer extends StatelessWidget {
       // 1. SettingsProvider 초기화 (설정 먼저 로드)
       await context.read<SettingsProvider>().initialize();
 
-      // 2. TodoProvider 초기화 (할 일 관리)
-      await context.read<TodoProvider>().initialize(context);
+      // 2. TodoProvider 초기화 (할 일 관리) - mounted 체크
+      if (context.mounted) {
+        await context.read<TodoProvider>().initialize(context);
+      }
 
       if (kDebugMode) {
         print('모든 Provider 초기화 완료');

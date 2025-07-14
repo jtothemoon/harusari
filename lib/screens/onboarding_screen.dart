@@ -91,53 +91,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   return Padding(
                     padding: const EdgeInsets.all(40.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // 아이콘 이미지
                         Expanded(
-                          flex: 3,
-                          child: Center(
-                            child: _buildPageImage(
-                              _contents[i].icon,
-                              _contents[i].color,
-                            ),
+                          child: _buildPageImage(
+                            _contents[i].icon,
+                            _contents[i].color,
                           ),
                         ),
 
-                        // 텍스트 영역
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // 제목
-                              Text(
-                                _contents[i].title,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.getTextPrimaryColor(context),
-                                  height: 1.3,
-                                ),
-                              ),
+                        const SizedBox(height: 40),
 
-                              const SizedBox(height: 16),
-
-                              // 설명
-                              Text(
-                                _contents[i].desc,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: AppColors.getTextSecondaryColor(
-                                    context,
-                                  ),
-                                  height: 1.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                        // 제목
+                        Text(
+                          _contents[i].title,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.getTextPrimaryColor(context),
+                            height: 1.3,
                           ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // 설명
+                        Text(
+                          _contents[i].desc,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.getTextSecondaryColor(context),
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -147,91 +134,106 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
 
             // 하단 컨트롤
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+            Expanded(
+              flex: 1,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 왼쪽 버튼 (건너뛰기 또는 이전)
-                  Expanded(
-                    child: _currentPage == 0
-                        ? TextButton(
+                  // 점 인디케이터
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _contents.length,
+                      (int index) => _buildDots(index: index),
+                    ),
+                  ),
+
+                  // 버튼들
+                  _currentPage + 1 == _contents.length
+                      ? Padding(
+                          padding: const EdgeInsets.all(30),
+                          child: TextButton(
                             onPressed: _finishOnboarding,
                             style: TextButton.styleFrom(
-                              foregroundColor: AppColors.getTextSecondaryColor(
-                                context,
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 60,
+                                vertical: 16,
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                             child: const Text(
-                              "건너뛰기",
+                              "시작하기",
                               style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                          )
-                        : TextButton(
-                            onPressed: () {
-                              _controller.previousPage(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeIn,
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.getTextSecondaryColor(
-                                context,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: const Text(
-                              "이전",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
                               ),
                             ),
                           ),
-                  ),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.all(30),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // 왼쪽 버튼 (건너뛰기 또는 이전)
+                              TextButton(
+                                onPressed: _currentPage == 0
+                                    ? _finishOnboarding
+                                    : () {
+                                        _controller.previousPage(
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          curve: Curves.easeIn,
+                                        );
+                                      },
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      AppColors.getTextSecondaryColor(context),
+                                ),
+                                child: Text(
+                                  _currentPage == 0 ? "건너뛰기" : "이전",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
 
-                  // 가운데 점 인디케이터
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _contents.length,
-                        (int index) => _buildDots(index: index),
-                      ),
-                    ),
-                  ),
-
-                  // 오른쪽 버튼 (다음 또는 시작하기)
-                  Expanded(
-                    child: TextButton(
-                      onPressed: _currentPage == _contents.length - 1
-                          ? _finishOnboarding
-                          : () {
-                              _controller.nextPage(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeIn,
-                              );
-                            },
-                      style: TextButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                              // 오른쪽 버튼 (다음)
+                              TextButton(
+                                onPressed: () {
+                                  _controller.nextPage(
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.easeIn,
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 30,
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "다음",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _currentPage == _contents.length - 1 ? "시작하기" : "다음",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

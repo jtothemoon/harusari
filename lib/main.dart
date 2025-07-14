@@ -29,7 +29,7 @@ void main() async {
 
   runApp(const MyApp());
 
-  FlutterNativeSplash.remove();
+  // FlutterNativeSplash.remove(); // 여기서 제거하지 않고 AppInitializer에서 제거
 }
 
 class MyApp extends StatefulWidget {
@@ -116,6 +116,11 @@ class AppInitializer extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
+
+        // 초기화 완료 후 스플래시 제거
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FlutterNativeSplash.remove();
+        });
 
         // 초기화 완료 후 실제 앱 화면 표시
         return child;

@@ -316,6 +316,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   color: AppColors.primary,
                                   shape: BoxShape.circle,
                                 ),
+                                selectedTextStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
                                 todayDecoration: BoxDecoration(
                                   color: AppColors.primary.withValues(
                                     alpha: 0.1,
@@ -325,6 +329,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     width: 2,
                                   ),
                                   shape: BoxShape.circle,
+                                ),
+                                todayTextStyle: TextStyle(
+                                  color: AppColors.getTextPrimaryColor(context),
+                                  fontWeight: FontWeight.w600,
                                 ),
                                 defaultTextStyle: TextStyle(
                                   color: AppColors.getTextPrimaryColor(context),

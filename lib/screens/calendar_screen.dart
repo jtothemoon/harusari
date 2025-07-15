@@ -121,352 +121,425 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: Consumer<TodoProvider>(
         builder: (context, todoProvider, child) {
-          return Column(
-            children: [
-              // 캘린더 위젯
-              Container(
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.getCardBackgroundColor(context),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.getShadowColor(context),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TableCalendar<Todo>(
-                  locale: 'ko_KR',
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) {
-                    return isSameDay(_selectedDay, day);
-                  },
-                  daysOfWeekVisible: true,
-                  onDaySelected: (selectedDay, focusedDay) async {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-                    });
-                    await _loadSelectedDayTodos();
-                  },
-                  onPageChanged: (focusedDay) {
-                    _focusedDay = focusedDay;
-                  },
-                  eventLoader: (day) {
-                    return [];
-                  },
-                  calendarBuilders: CalendarBuilders(
-                    dowBuilder: (context, day) {
-                      String dayName;
-                      switch (day.weekday) {
-                        case 1:
-                          dayName = '월';
-                          break;
-                        case 2:
-                          dayName = '화';
-                          break;
-                        case 3:
-                          dayName = '수';
-                          break;
-                        case 4:
-                          dayName = '목';
-                          break;
-                        case 5:
-                          dayName = '금';
-                          break;
-                        case 6:
-                          dayName = '토';
-                          break;
-                        case 7:
-                          dayName = '일';
-                          break;
-                        default:
-                          dayName = '';
-                      }
-                      return Center(
-                        child: Text(
-                          dayName,
-                          style: TextStyle(
-                            color: AppColors.getTextSecondaryColor(context),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final availableHeight = constraints.maxHeight;
+              final calendarHeight = (availableHeight * 0.5).clamp(
+                280.0,
+                350.0,
+              );
+              final listHeight =
+                  availableHeight - calendarHeight - 32; // 32는 여백
+
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // 캘린더 위젯
+                    Container(
+                      margin: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.getCardBackgroundColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.getShadowColor(context),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                      );
-                    },
-                    markerBuilder: (context, day, events) {
-                      return FutureBuilder<List<Todo>>(
-                        future: todoProvider.getCompletedTodosForDate(day),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
+                        ],
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, innerConstraints) {
+                          return SizedBox(
+                            height: calendarHeight,
+                            child: TableCalendar<Todo>(
+                              locale: 'ko_KR',
+                              firstDay: DateTime.utc(2020, 1, 1),
+                              lastDay: DateTime.utc(2030, 12, 31),
+                              focusedDay: _focusedDay,
+                              selectedDayPredicate: (day) {
+                                return isSameDay(_selectedDay, day);
+                              },
+                              daysOfWeekVisible: true,
+                              daysOfWeekHeight: 28, // 요일 표시 영역 높이 명시적 지정
+                              rowHeight: (calendarHeight / 8).clamp(
+                                40.0,
+                                52.0,
+                              ), // 캘린더 높이에 비례하여 조정
+                              onDaySelected: (selectedDay, focusedDay) async {
+                                setState(() {
+                                  _selectedDay = selectedDay;
+                                  _focusedDay = focusedDay;
+                                });
+                                await _loadSelectedDayTodos();
+                              },
+                              onPageChanged: (focusedDay) {
+                                _focusedDay = focusedDay;
+                              },
+                              eventLoader: (day) {
+                                return [];
+                              },
+                              calendarBuilders: CalendarBuilders(
+                                dowBuilder: (context, day) {
+                                  String dayName;
+                                  switch (day.weekday) {
+                                    case 1:
+                                      dayName = '월';
+                                      break;
+                                    case 2:
+                                      dayName = '화';
+                                      break;
+                                    case 3:
+                                      dayName = '수';
+                                      break;
+                                    case 4:
+                                      dayName = '목';
+                                      break;
+                                    case 5:
+                                      dayName = '금';
+                                      break;
+                                    case 6:
+                                      dayName = '토';
+                                      break;
+                                    case 7:
+                                      dayName = '일';
+                                      break;
+                                    default:
+                                      dayName = '';
+                                  }
+                                  return Container(
+                                    height: 24, // 명시적으로 높이 지정
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      dayName,
+                                      style: TextStyle(
+                                        color: AppColors.getTextSecondaryColor(
+                                          context,
+                                        ),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11, // 폰트 크기를 약간 줄임
+                                        height: 1.2, // 줄 높이 조정
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  );
+                                },
+                                markerBuilder: (context, day, events) {
+                                  return FutureBuilder<List<Todo>>(
+                                    future: todoProvider
+                                        .getCompletedTodosForDate(day),
+                                    builder: (context, snapshot) {
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
 
-                          final completedTodos = snapshot.data!;
-                          final highCount = completedTodos
-                              .where((t) => t.priority == Priority.high)
-                              .length;
-                          final mediumCount = completedTodos
-                              .where((t) => t.priority == Priority.medium)
-                              .length;
-                          final lowCount = completedTodos
-                              .where((t) => t.priority == Priority.low)
-                              .length;
+                                      final completedTodos = snapshot.data!;
+                                      final highCount = completedTodos
+                                          .where(
+                                            (t) => t.priority == Priority.high,
+                                          )
+                                          .length;
+                                      final mediumCount = completedTodos
+                                          .where(
+                                            (t) =>
+                                                t.priority == Priority.medium,
+                                          )
+                                          .length;
+                                      final lowCount = completedTodos
+                                          .where(
+                                            (t) => t.priority == Priority.low,
+                                          )
+                                          .length;
 
-                          return Positioned(
-                            bottom: 2,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (highCount > 0)
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 0.5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.priorityHigh,
-                                      shape: BoxShape.circle,
-                                    ),
+                                      return Positioned(
+                                        bottom: 2,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (highCount > 0)
+                                              Container(
+                                                width: 6,
+                                                height: 6,
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 0.5,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.priorityHigh,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            if (mediumCount > 0)
+                                              Container(
+                                                width: 6,
+                                                height: 6,
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 0.5,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      AppColors.priorityMedium,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            if (lowCount > 0)
+                                              Container(
+                                                width: 6,
+                                                height: 6,
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 0.5,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.priorityLow,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              calendarStyle: CalendarStyle(
+                                outsideDaysVisible: false,
+                                weekendTextStyle: TextStyle(
+                                  color: AppColors.getTextPrimaryColor(context),
+                                ),
+                                holidayTextStyle: TextStyle(
+                                  color: AppColors.priorityHigh,
+                                ),
+                                selectedDecoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                todayDecoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
                                   ),
-                                if (mediumCount > 0)
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 0.5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.priorityMedium,
-                                      shape: BoxShape.circle,
-                                    ),
+                                  border: Border.all(
+                                    color: AppColors.primary,
+                                    width: 2,
                                   ),
-                                if (lowCount > 0)
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 0.5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.priorityLow,
-                                      shape: BoxShape.circle,
-                                    ),
+                                  shape: BoxShape.circle,
+                                ),
+                                defaultTextStyle: TextStyle(
+                                  color: AppColors.getTextPrimaryColor(context),
+                                ),
+                              ),
+                              headerStyle: HeaderStyle(
+                                formatButtonVisible: false,
+                                titleCentered: true,
+                                titleTextStyle: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.getTextPrimaryColor(context),
+                                ),
+                                leftChevronIcon: Icon(
+                                  LucideIcons.chevronLeft,
+                                  color: AppColors.getTextPrimaryColor(context),
+                                ),
+                                rightChevronIcon: Icon(
+                                  LucideIcons.chevronRight,
+                                  color: AppColors.getTextPrimaryColor(context),
+                                ),
+                              ),
+                              daysOfWeekStyle: DaysOfWeekStyle(
+                                weekdayStyle: TextStyle(
+                                  color: AppColors.getTextSecondaryColor(
+                                    context,
                                   ),
-                              ],
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 11, // dowBuilder와 동일한 크기로 맞춤
+                                  height: 1.2, // 줄 높이 조정
+                                ),
+                                weekendStyle: TextStyle(
+                                  color: AppColors.getTextSecondaryColor(
+                                    context,
+                                  ),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 11, // dowBuilder와 동일한 크기로 맞춤
+                                  height: 1.2, // 줄 높이 조정
+                                ),
+                              ),
                             ),
                           );
                         },
-                      );
-                    },
-                  ),
-                  calendarStyle: CalendarStyle(
-                    outsideDaysVisible: false,
-                    weekendTextStyle: TextStyle(
-                      color: AppColors.getTextPrimaryColor(context),
+                      ),
                     ),
-                    holidayTextStyle: TextStyle(color: AppColors.priorityHigh),
-                    selectedDecoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    todayDecoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      border: Border.all(color: AppColors.primary, width: 2),
-                      shape: BoxShape.circle,
-                    ),
-                    defaultTextStyle: TextStyle(
-                      color: AppColors.getTextPrimaryColor(context),
-                    ),
-                  ),
-                  headerStyle: HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                    titleTextStyle: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.getTextPrimaryColor(context),
-                    ),
-                    leftChevronIcon: Icon(
-                      LucideIcons.chevronLeft,
-                      color: AppColors.getTextPrimaryColor(context),
-                    ),
-                    rightChevronIcon: Icon(
-                      LucideIcons.chevronRight,
-                      color: AppColors.getTextPrimaryColor(context),
-                    ),
-                  ),
-                  daysOfWeekStyle: DaysOfWeekStyle(
-                    weekdayStyle: TextStyle(
-                      color: AppColors.getTextSecondaryColor(context),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    weekendStyle: TextStyle(
-                      color: AppColors.getTextSecondaryColor(context),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-              // 선택된 날짜의 완료된 할 일 목록
-              if (_selectedDay != null)
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.getCardBackgroundColor(context),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.getShadowColor(context),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              LucideIcons.calendar,
-                              size: 20,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${_selectedDay!.year}년 ${_selectedDay!.month}월 ${_selectedDay!.day}일',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.getTextPrimaryColor(context),
+                    // 선택된 날짜의 완료된 할 일 목록
+                    if (_selectedDay != null)
+                      SizedBox(
+                        height: listHeight > 200
+                            ? listHeight
+                            : 200, // 최소 200px 보장
+                        child: Container(
+                          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.getCardBackgroundColor(context),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.getShadowColor(context),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                            ),
-                            const Spacer(),
-                            if (_selectedDayTodos.isNotEmpty)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.success.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '${_selectedDayTodos.length}개 완료',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.success,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        if (_selectedDayTodos.isEmpty)
-                          Expanded(child: EmptyStates.noCompletedTodos())
-                        else
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: _selectedDayTodos.length,
-                              itemBuilder: (context, index) {
-                                final todo = _selectedDayTodos[index];
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.getBackgroundColor(
-                                      context,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border(
-                                      left: BorderSide(
-                                        color: _getPriorityColor(todo.priority),
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      // 우선순위 아이콘
-                                      Container(
-                                        width: 16,
-                                        height: 16,
-                                        decoration: BoxDecoration(
-                                          color: _getPriorityColor(
-                                            todo.priority,
-                                          ).withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            3,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          _getPriorityIcon(todo.priority),
-                                          size: 10,
-                                          color: _getPriorityColor(
-                                            todo.priority,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          todo.title,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color:
-                                                AppColors.getTextPrimaryColor(
-                                                  context,
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                      // 되돌리기 버튼
-                                      InkWell(
-                                        onTap: () => _restoreTodo(todo),
-                                        borderRadius: BorderRadius.circular(16),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            LucideIcons.rotateCcw,
-                                            size: 16,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                            ],
                           ),
-                      ],
-                    ),
-                  ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    LucideIcons.calendar,
+                                    size: 20,
+                                    color: AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${_selectedDay!.year}년 ${_selectedDay!.month}월 ${_selectedDay!.day}일',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.getTextPrimaryColor(
+                                        context,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  if (_selectedDayTodos.isNotEmpty)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.success.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${_selectedDayTodos.length}개 완료',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.success,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              if (_selectedDayTodos.isEmpty)
+                                Expanded(
+                                  child: Center(
+                                    child: EmptyStates.noCompletedTodos(),
+                                  ),
+                                )
+                              else
+                                Expanded(
+                                  child: ListView.builder(
+                                    itemCount: _selectedDayTodos.length,
+                                    itemBuilder: (context, index) {
+                                      final todo = _selectedDayTodos[index];
+                                      return Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.getBackgroundColor(
+                                            context,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border(
+                                            left: BorderSide(
+                                              color: _getPriorityColor(
+                                                todo.priority,
+                                              ),
+                                              width: 3,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            // 우선순위 아이콘
+                                            Container(
+                                              width: 16,
+                                              height: 16,
+                                              decoration: BoxDecoration(
+                                                color: _getPriorityColor(
+                                                  todo.priority,
+                                                ).withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(3),
+                                              ),
+                                              child: Icon(
+                                                _getPriorityIcon(todo.priority),
+                                                size: 10,
+                                                color: _getPriorityColor(
+                                                  todo.priority,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                todo.title,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color:
+                                                      AppColors.getTextPrimaryColor(
+                                                        context,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                            // 되돌리기 버튼
+                                            InkWell(
+                                              onTap: () => _restoreTodo(todo),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.primary
+                                                      .withValues(alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                ),
+                                                child: Icon(
+                                                  LucideIcons.rotateCcw,
+                                                  size: 16,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
+              );
+            },
           );
         },
       ),

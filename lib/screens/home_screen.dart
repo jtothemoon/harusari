@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:harutodo/repositories/announcement.dart';
+import 'package:harutodo/widgets/accouncement_dialog.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_colors.dart';
 import '../providers/todo_provider.dart';
 import '../models/todo.dart';
@@ -29,6 +33,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // main.dart의 AppInitializer에서 이미 초기화 완료
     // 추가 초기화 작업이 필요하면 여기서 처리
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _showAnnouncements();
+    });
+  }
+
+  Future<void> _showAnnouncements() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    final AnnouncementRepository repository = AnnouncementRepository(
+      Supabase.instance.client,
+      packageInfo.packageName,
+    );
+
+    final announcement = await repository.getLatestAnnouncement();
+
+    print('Showing announcement: ${announcement?.title}');
+
+    if (announcement != null && mounted) {
+      print('Showing announcement: ${announcement.title}');
+      await AccouncementDialog.show(context, announcement);
+    }
   }
 
   @override

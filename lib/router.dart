@@ -18,7 +18,7 @@ class Routes {
 
 // 라우터 설정
 final GoRouter appRouter = GoRouter(
-  initialLocation: Routes.onboarding,
+  initialLocation: Routes.home,
   redirect: (context, state) async {
     // 온보딩 완료 여부 확인
     final isOnboardingCompleted =

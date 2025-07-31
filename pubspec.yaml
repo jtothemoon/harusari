@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: 'none'
 
-version: 1.0.0+6
+version: 1.0.0+7
 
 environment:
   sdk: ^3.8.1
@@ -55,13 +55,16 @@ dependencies:
   flutter_local_notifications: ^17.2.3
   
   # 온보딩 화면
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.3
   
   # 구글 폰트
   google_fonts: ^6.2.1
   
   # 아이콘 라이브러리 - 깔끔하고 모던한 아이콘들
   lucide_icons: ^0.257.0
+
+  # supabase
+  supabase_flutter: ^2.9.1
 
 dev_dependencies:
   flutter_test:

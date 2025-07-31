@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:harutodo/models/announcement.dart';
+import 'package:harutodo/repositories/announcement.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_colors.dart';
 import '../providers/settings_provider.dart';
 import '../providers/todo_provider.dart';
@@ -94,6 +97,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
+  }
+
+  Future<List<Announcement>> _fetchAnnouncements(BuildContext context) async {
+    final packageInfo = await _loadPackageInfo();
+    final client = Supabase.instance.client;
+    final repo = AnnouncementRepository(
+      client,
+      packageInfo.packageName,
+    );
+    return await repo.getAnnouncements();
+  }
+
+  Future<void> _showAnnouncementsDialog() async {
+    final announcements = await _fetchAnnouncements(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('공지사항'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: announcements.isEmpty
+              ? const Text('공지사항이 없습니다.')
+              : ListView(
+                  shrinkWrap: true,
+                  children: announcements.map((ann) {
+                    return ExpansionTile(
+                      title: Text(ann.title),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(ann.content),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('닫기'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -373,6 +421,93 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               );
             },
+          ),
+          const SizedBox(height: 16),
+          // 공지사항
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.getCardBackgroundColor(context),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.getShadowColor(context),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        '공지사항',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: _showAnnouncementsDialog,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.05),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            LucideIcons.megaphone,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '공지사항 보기',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w500),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '앱 관련 최신 소식을 확인하세요',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: AppColors.getTextSecondaryColor(
+                                          context,
+                                        ),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            LucideIcons.chevronRight,
+                            color: AppColors.getTextSecondaryColor(context),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           // 고객 문의/제안

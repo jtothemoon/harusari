@@ -47,11 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     final announcement = await repository.getLatestAnnouncement();
-
-    print('Showing announcement: ${announcement?.title}');
-
     if (announcement != null && mounted) {
-      print('Showing announcement: ${announcement.title}');
       await AccouncementDialog.show(context, announcement);
     }
   }

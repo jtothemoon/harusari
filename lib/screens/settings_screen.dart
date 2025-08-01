@@ -111,6 +111,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _showAnnouncementsDialog() async {
     final announcements = await _fetchAnnouncements(context);
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

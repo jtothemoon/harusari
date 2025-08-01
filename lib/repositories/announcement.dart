@@ -18,7 +18,6 @@ class AnnouncementRepository {
   }
 
   Future<Announcement?> getLatestAnnouncement() async {
-    print('getLatestAnnouncement called');
     final response =
         await _client
             .from('announcements')

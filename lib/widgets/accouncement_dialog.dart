@@ -98,6 +98,7 @@ class _AccouncementDialogState extends State<AccouncementDialog> {
                 if (_dontShowAgain) {
                   await AccouncementDialog._setViewed(widget.announcement.id);
                 }
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
